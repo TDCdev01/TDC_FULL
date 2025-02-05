@@ -1,12 +1,17 @@
 import { API_URL } from '../../config/config';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, FileText, Plus, Settings, LogOut } from 'lucide-react';
+import { 
+    Users, FileText, Plus, Settings, LogOut, 
+    BookOpen, Video, FolderPlus 
+} from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 export default function AdminDashboard() {
     const navigate = useNavigate();
     const { setAuthState } = useAuth();
+    const [loading, setLoading] = useState(true);
 
     const handleLogout = () => {
         localStorage.removeItem('adminToken');
@@ -28,18 +33,32 @@ export default function AdminDashboard() {
             bgColor: 'bg-blue-500'
         },
         {
+            title: 'Create Course',
+            icon: <FolderPlus className="w-8 h-8" />,
+            description: 'Create new courses and lessons',
+            onClick: () => navigate('/admin/courses/create'),
+            bgColor: 'bg-green-500'
+        },
+        {
+            title: 'Manage Courses',
+            icon: <BookOpen className="w-8 h-8" />,
+            description: 'View and edit existing courses',
+            onClick: () => navigate('/admin/courses'),
+            bgColor: 'bg-yellow-500'
+        },
+        {
             title: 'Create Blog Post',
             icon: <Plus className="w-8 h-8" />,
             description: 'Write and publish new blog posts',
             onClick: () => navigate('/admin/create-post'),
-            bgColor: 'bg-green-500'
+            bgColor: 'bg-purple-500'
         },
         {
             title: 'View Posts',
             icon: <FileText className="w-8 h-8" />,
             description: 'Manage existing blog posts',
             onClick: () => navigate('/admin/posts'),
-            bgColor: 'bg-purple-500'
+            bgColor: 'bg-indigo-500'
         },
         {
             title: 'Settings',
@@ -50,16 +69,27 @@ export default function AdminDashboard() {
         }
     ];
 
-    const fetchUsers = async () => {
-        try {
-            const response = await fetch(`${API_URL}/api/admin/users`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            // ...
-        } catch (error) {
-            // ...
-        }
-    };
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                // ... fetch data
+            } catch (error) {
+                console.error('Error fetching dashboard data:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchDashboardData();
+    }, []);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-[#0f172a] text-white flex flex-col items-center justify-center">
+                <LoadingSpinner size="large" />
+                <p className="mt-4 text-gray-300 font-medium">Loading dashboard...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-gray-900">
@@ -75,7 +105,7 @@ export default function AdminDashboard() {
                     </button>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {dashboardCards.map((card, index) => (
                         <div
                             key={index}

@@ -20,6 +20,7 @@ const { logUserActivity } = require('./services/logService');
 const auth = require('./middleware/auth');
 const { API_URL } = require('./config/config');
 const BlogPost = require('./models/BlogPost');
+const courseRoutes = require('./routes/courseRoutes');
 
 const app = express();
 app.use(cors({
@@ -32,6 +33,9 @@ app.use(express.json());
 
 // Mount the blog posts routes
 app.use('/api', blogPostRoutes);
+
+// Add this with your other app.use statements
+app.use('/api', courseRoutes);
 
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://anshuman:Anshuman123@cluster0.nqygv2g.mongodb.net/TDC?retryWrites=true&w=majority', {
@@ -1475,13 +1479,13 @@ app.post('/api/logout', auth, async (req, res) => {
   }
 });
 
-// Error handling for undefined routes
-app.use((req, res, next) => {
-  console.log('404 - Route not found:', req.path);
-  res.status(404).json({
-    success: false,
-    message: 'Route not found'
-  });
+// Add a catch-all route handler for debugging
+app.use((req, res) => {
+    console.log(`Route not found: ${req.method} ${req.url}`);
+    res.status(404).json({
+        success: false,
+        message: 'Route not found'
+    });
 });
 
 // Error handling middleware

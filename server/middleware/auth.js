@@ -4,6 +4,11 @@ const JWT_SECRET = process.env.JWT_SECRET || 'abcd';
 const auth = async (req, res, next) => {
     try {
         const token = req.header('Authorization')?.replace('Bearer ', '');
+        console.log('Received request:', {
+            method: req.method,
+            path: req.path,
+            token: token ? 'Present' : 'Missing'
+        });
         
         if (!token) {
             return res.status(401).json({

@@ -55,46 +55,52 @@ export default function Navbar() {
 
   const navItems = [
     {
-      title: 'Courses',
+      title: 'Home',
+      href: '/',
+    },
+    {
+      title: 'Junior Role',
+      href: '/junior',
       items: [
-        { name: 'Foundation', href: '/courses' },
-        { name: 'Web Development', href: '/courses/web-development' },
-        { name: 'Data Science', href: '/courses/data-science' },
+        { name: 'PBI Report Developer', href: '/live-classes/upcoming' },
+        { name: 'Python Data Engineer', href: '/live-classes/upcoming' },
+        { name: 'DataBase Developer MySQL', href: '/live-classes/upcoming' },
+        { name: 'MongoDB Developer', href: '/live-classes/upcoming' },
+        { name: 'Azure Data Analyst', href: '/live-classes/recorded' },
       ],
     },
     {
-      title: 'Skill Development',
+      title: 'Senior Role',
       items: [
-        { name: 'Upcoming Classes', href: '/live-classes/upcoming' },
-        { name: 'Recorded Sessions', href: '/live-classes/recorded' },
+        { name: 'Data Analyst(PBI + SQL)', href: '/practice/coding' },
+        { name: 'Data Scientist(Python + ML)', href: '/practice/projects' },
+        { name: 'Database Admin(MySQL)', href: '/practice/projects' },
+        { name: 'Big Data Analyst(Spark + Hadoop)', href: '/practice/projects' },
+        { name: 'Azure Data Admin(Azure)', href: '/practice/projects' },
       ],
     },
     {
-      title: 'Application',
+      title: 'Arch Role',
       items: [
-        { name: 'Coding Practice', href: '/practice/coding' },
-        { name: 'Projects', href: '/practice/projects' },
+        { name: 'Fabric Architect PBI', href: '/resources/blog' },
+        { name: 'ML Architect', href: '/resources/blog' },
+        { name: 'Database Architect', href: '/resources/blog' },
+        { name: 'Cloud Architect', href: '/resources/blog' },
+        { name: 'Azure Architect', href: '/resources/blog' }, 
       ],
     },
     {
-      title: 'Opportunities',
+      title: 'Our Community',
       items: [
-        { name: 'Blog', href: '/resources/blog' },
-        { name: 'Tutorials', href: '/resources/tutorials' },
-      ],
-    },
-    {
-      title: 'Plans & Pricing',
-      items: [
-        { name: 'For Individuals', href: '/solutions/individuals' },
-        { name: 'For Companies', href: '/solutions/companies' },
-        { name: 'Contact Us', href: '/contact' },
+        { name: 'Blog', href: '/blog' },
+        { name: 'Pricing', href: '/solutions/companies' },
+        { name: 'About Us', href: '/contact' },
       ],
     },
   ];
 
   return (
-    <nav className="navbar sticky top-0 z-50 w-full bg-[#333333] shadow-md">
+    <nav className="navbar sticky top-0 z-50 w-full bg-[#383838] shadow-md">
       <div className="container flex items-center justify-between px-4 py-2 mx-auto">
         <Link to="/" className="flex items-center gap-5">
           <img 

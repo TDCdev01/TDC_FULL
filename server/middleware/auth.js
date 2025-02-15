@@ -1,40 +1,36 @@
 const jwt = require('jsonwebtoken');
-const JWT_SECRET = process.env.JWT_SECRET || 'abcd';
+const Admin = require('../models/admin');
 
 const auth = async (req, res, next) => {
     try {
         const token = req.header('Authorization')?.replace('Bearer ', '');
-        console.log('Received request:', {
-            method: req.method,
-            path: req.path,
-            token: token ? 'Present' : 'Missing'
-        });
+        console.log('Token received:', token); // Debug log
         
         if (!token) {
-            return res.status(401).json({
-                success: false,
-                message: 'No authentication token, access denied'
-            });
+            throw new Error('No token provided');
         }
 
-        try {
-            const decoded = jwt.verify(token, JWT_SECRET);
-            req.user = decoded;
-            req.isAdmin = decoded.isAdmin || false;
-            req.adminId = decoded.adminId;
-            next();
-        } catch (error) {
-            console.error('Token verification failed:', error);
-            return res.status(401).json({
-                success: false,
-                message: 'Token verification failed'
-            });
+        // Use JWT_SECRET from environment variables
+        const decoded = jwt.verify(token, 'abcd'); // Use the same secret used for token creation
+        console.log('Decoded token:', decoded); // Debug log
+
+        const admin = await Admin.findOne({ _id: decoded.adminId }); // Changed from decoded._id to decoded.adminId
+        console.log('Found admin:', admin); // Debug log
+
+        if (!admin) {
+            throw new Error('Admin not found');
         }
+
+        req.adminId = admin._id;
+        req.adminName = admin.name;
+        
+        next();
     } catch (error) {
         console.error('Auth middleware error:', error);
-        res.status(500).json({
+        res.status(401).json({
             success: false,
-            message: 'Server Error'
+            message: 'Please authenticate',
+            error: error.message
         });
     }
 };

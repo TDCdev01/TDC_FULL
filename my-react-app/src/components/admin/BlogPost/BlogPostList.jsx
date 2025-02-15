@@ -36,7 +36,7 @@ export default function BlogPostList() {
         id: post._id,
         title: post.title,
         author: post.author,
-        authorName: post.authorName
+        authorName: post.authorNameFE
       })));
       
       if (data.success) {
@@ -138,7 +138,7 @@ export default function BlogPostList() {
                       {post.title}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-300">
-                      {post.author?.name || post.authorName || 'Unknown Author'}
+                      {post.authorNameFE || 'Unknown Author'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-300">
                       {post.viewCount || 0}

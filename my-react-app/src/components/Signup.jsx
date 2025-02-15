@@ -72,7 +72,7 @@ export default function Signup() {
   };
 
   return (
-    <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
+    <GoogleOAuthProvider clientId="1036131393808-7rgoa59ur5gt62i8uj9k2bn63uqe9eci.apps.googleusercontent.com">
       <div>
         <h1>Create Your Account</h1>
         <p>Join our learning community today</p>

@@ -10,107 +10,99 @@ router.use((req, res, next) => {
   next();
 });
 
-// Create a new blog post
+// Create blog post
 router.post('/admin/blog-posts', auth, async (req, res) => {
-    try {
-        console.log('Received blog post request:', req.body);
-        const { title, sections } = req.body;
+  try {
+    const { title, sections, tags, topics, bannerImage, authorName } = req.body;
 
-        if (!title || !sections) {
-            return res.status(400).json({
-                success: false,
-                message: 'Title and content are required'
-            });
-        }
-
-        // Use adminId from token
-        const newBlogPost = new BlogPost({
-            title,
-            sections,
-            author: req.user.adminId,
-        });
-
-        await newBlogPost.save();
-        console.log('Blog post saved successfully');
-
-        res.status(201).json({
-            success: true,
-            message: 'Blog post created successfully',
-            post: newBlogPost
-        });
-    } catch (error) {
-        console.error('Blog post creation error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error creating blog post'
-        });
+    // Validate required fields
+    if (!title || !sections || !authorName) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title, sections, and author name are required'
+      });
     }
+
+    // Create new blog post
+    const blogPost = new BlogPost({
+      title: title.trim(),
+      sections,
+      tags,
+      topics,
+      bannerImage: bannerImage || null,
+      authorNameFE: authorName.trim(), // Set the frontend author name
+      authorName: req.adminName, // Keep admin's name for reference
+      author: req.adminId
+    });
+
+    await blogPost.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Blog post created successfully',
+      post: blogPost
+    });
+  } catch (error) {
+    console.error('Error in blog post creation:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating blog post',
+      error: error.message
+    });
+  }
 });
 
 // Get all blog posts
 router.get('/blog-posts', async (req, res) => {
-    try {
-        const posts = await BlogPost.find()
-            .populate({
-                path: 'author',
-                model: 'Admin',
-                select: 'name'
-            })
-            .sort({ createdAt: -1 });
+  try {
+    const posts = await BlogPost.find()
+      .sort({ createdAt: -1 })
+      .populate('author', 'name')
+      .lean(); // Use lean() for better performance
 
-        res.json({
-            success: true,
-            posts: posts.map(post => ({
-                _id: post._id,
-                title: post.title,
-                sections: post.sections,
-                author: post.author,
-                viewCount: post.viewCount || 0,
-                createdAt: post.createdAt,
-                updatedAt: post.updatedAt
-            }))
-        });
-    } catch (error) {
-        console.error('Error fetching blog posts:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error fetching blog posts'
-        });
-    }
+    console.log('Posts being sent:', posts); // Debug log
+
+    res.json({
+      success: true,
+      posts: posts.map(post => ({
+        ...post,
+        bannerImage: post.bannerImage || null,
+        authorName: post.authorName
+      }))
+    });
+  } catch (error) {
+    console.error('Error fetching blog posts:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching blog posts'
+    });
+  }
 });
 
 // Get single blog post
 router.get('/blog-posts/:id', async (req, res) => {
-    try {
-        const post = await BlogPost.findById(req.params.id)
-            .populate('author', 'firstName lastName');
+  try {
+    const post = await BlogPost.findById(req.params.id)
+      .populate('author', 'name');
 
-        if (!post) {
-            return res.status(404).json({
-                success: false,
-                message: 'Blog post not found'
-            });
-        }
-
-        res.json({
-            success: true,
-            post: {
-                _id: post._id,
-                title: post.title,
-                sections: post.sections,
-                author: post.author,
-                viewCount: post.viewCount || 0,
-                createdAt: post.createdAt,
-                updatedAt: post.updatedAt
-            }
-        });
-    } catch (error) {
-        console.error('Error fetching blog post:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Error fetching blog post'
-        });
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: 'Blog post not found'
+      });
     }
+
+    res.json({
+      success: true,
+      post
+    });
+  } catch (error) {
+    console.error('Error fetching blog post:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching blog post'
+    });
+  }
 });
 
 // Update entire blog post

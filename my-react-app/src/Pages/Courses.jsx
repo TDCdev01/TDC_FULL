@@ -19,10 +19,10 @@ export default function Courses() {
 
   const categories = [
     { id: 'all', name: 'All Courses', icon: BookOpen },
-    { id: 'python', name: 'Python', icon: Code },
-    { id: 'javascript', name: 'JavaScript', icon: Code },
-    { id: 'data-science', name: 'Data Science', icon: Book },
-    { id: 'machine-learning', name: 'Machine Learning', icon: Book }
+    { id: 'data-analytics', name: 'Data Analytics', icon: Code },
+    { id: 'data-science', name: 'Data Science', icon: Code },
+    { id: 'database', name: 'Database', icon: Book },
+    { id: 'cloud', name: 'Cloud', icon: Book }
   ];
 
   const levels = [
@@ -51,12 +51,31 @@ export default function Courses() {
   };
 
   const filteredCourses = courses.filter(course => {
-    const matchesCategory = selectedCategory === 'all' || course.category === selectedCategory;
-    const matchesLevel = selectedLevel === 'all' || course.level === selectedLevel;
-    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         course.description.toLowerCase().includes(searchQuery.toLowerCase());
+    // Category filter - normalize the category values
+    const courseCategory = course.category?.toLowerCase().replace(/\s+/g, '-');
+    const matchesCategory = selectedCategory === 'all' || courseCategory === selectedCategory.toLowerCase();
+
+    // Level filter
+    const matchesLevel = selectedLevel === 'all' || 
+        course.level?.toLowerCase() === selectedLevel.toLowerCase();
+
+    // Search filter - check multiple fields
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch = !searchQuery || 
+        course.title?.toLowerCase().includes(searchLower) ||
+        course.description?.toLowerCase().includes(searchLower) ||
+        course.instructor?.name?.toLowerCase().includes(searchLower) ||
+        course.category?.toLowerCase().includes(searchLower);
+
     return matchesCategory && matchesLevel && matchesSearch;
   });
+
+  useEffect(() => {
+    console.log('Selected Category:', selectedCategory);
+    console.log('Selected Level:', selectedLevel);
+    console.log('Search Query:', searchQuery);
+    console.log('Filtered Courses:', filteredCourses);
+  }, [selectedCategory, selectedLevel, searchQuery, filteredCourses]);
 
   const containerVariants = {
     hidden: { opacity: 0 },

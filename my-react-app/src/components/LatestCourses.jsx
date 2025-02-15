@@ -1,242 +1,88 @@
 import { useState, useEffect } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, BookOpen, Download, Star, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { API_URL } from '../config/config';
 import './styles.css';
 
 // Use dynamic imports for images
 const images = import.meta.glob('../images/*.{png,jpg,jpeg,gif,webp,svg}');
 
-const tabs = [
-  "Database and Cloud Computing",
-  "Programming Languages",
-  "Network and Security",
-  "Data Science",
-  "Web Development",
-  "Software Testing and Automation",
-];
-
-const coursesData = {
-  "Database and Cloud Computing": [
-    {
-      title: "Redis RESTful API",
-      enrolled: 24155,
-      language: "English",
-      image: "",
-      link: "/courses/redis-python",
-    },
-    {
-      title: "Apache With Python",
-      enrolled: 6368,
-      language: "English",
-      image: "",
-      link: "/courses/cassandra-python",
-    },
-    {
-      title: "JDBC for Beginners",
-      enrolled: 2003,
-      language: "Hindi",
-      image: "",
-      link: "/courses/jdbc",
-    },
-    {
-      title: "SQL Masterclass",
-      enrolled: 2014,
-      language: "Tamil",
-      image: "",
-      link: "/courses/sql",
-    },
-  ],
-  "Programming Languages": [
-    {
-      title: "Python for Beginners",
-      enrolled: 45678,
-      language: "English",
-      image: "",
-      link: "/courses/python-beginners",
-    },
-    {
-      title: "Java Masterclass",
-      enrolled: 34567,
-      language: "English",
-      image: "",
-      link: "/courses/java-masterclass",
-    },
-    {
-      title: "JavaScript Fundamentals",
-      enrolled: 28945,
-      language: "English",
-      image: "",
-      link: "/courses/javascript-basics",
-    },
-    {
-      title: "C++ Advanced Concepts",
-      enrolled: 15789,
-      language: "English",
-      image: "",
-      link: "/courses/cpp-advanced",
-    },
-  ],
-  "Network and Security": [
-    {
-      title: "Cybersecurity Fundamentals",
-      enrolled: 12567,
-      language: "English",
-      image: "",
-      link: "/courses/cyber-security",
-    },
-    {
-      title: "Network Administration",
-      enrolled: 8934,
-      language: "English",
-      image: "",
-      link: "/courses/network-admin",
-    },
-    {
-      title: "Ethical Hacking",
-      enrolled: 19876,
-      language: "English",
-      image: "",
-      link: "/courses/ethical-hacking",
-    },
-    {
-      title: "Cloud Security",
-      enrolled: 7654,
-      language: "English",
-      image: "",
-      link: "/courses/cloud-security",
-    },
-  ],
-  "Data Science": [
-    {
-      title: "Machine Learning Basics",
-      enrolled: 32145,
-      language: "English",
-      image: "",
-      link: "/courses/ml-basics",
-    },
-    {
-      title: "Data Analysis with Python",
-      enrolled: 28456,
-      language: "English",
-      image: "",
-      link: "/courses/data-analysis",
-    },
-    {
-      title: "Deep Learning Fundamentals",
-      enrolled: 15678,
-      language: "English",
-      image: "",
-      link: "/courses/deep-learning",
-    },
-    {
-      title: "Statistical Analysis",
-      enrolled: 9876,
-      language: "English",
-      image: "",
-      link: "/courses/statistics",
-    },
-  ],
-  "Web Development": [
-    {
-      title: "Full Stack Development",
-      enrolled: 42567,
-      language: "English",
-      image: "",
-      link: "/courses/fullstack",
-    },
-    {
-      title: "React.js Advanced",
-      enrolled: 31245,
-      language: "English",
-      image: "",
-      link: "/courses/react-advanced",
-    },
-    {
-      title: "Node.js Backend",
-      enrolled: 25678,
-      language: "English",
-      image: "",
-      link: "/courses/nodejs",
-    },
-    {
-      title: "MongoDB Complete Guide",
-      enrolled: 18934,
-      language: "English",
-      image: "",
-      link: "/courses/mongodb",
-    },
-  ],
-  "Software Testing and Automation": [
-    {
-      title: "Selenium WebDriver",
-      enrolled: 15678,
-      language: "English",
-      image: "",
-      link: "/courses/selenium",
-    },
-    {
-      title: "API Testing",
-      enrolled: 12456,
-      language: "English",
-      image: "/src/images/api.jpg",
-      link: "/courses/api-testing",
-    },
-    {
-      title: "Test Automation Framework",
-      enrolled: 9876,
-      language: "English",
-      image: "/src/images/testing.jpg",
-      link: "/courses/test-automation",
-    },
-    {
-      title: "Performance Testing",
-      enrolled: 7845,
-      language: "English",
-      image: "/src/images/testing.jpg",
-      link: "/courses/performance-testing",
-    },
-  ],
-};
-
 export default function LatestCourses() {
-  const [activeTab, setActiveTab] = useState(tabs[0]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleTabClick = (tab) => {
-    if (tab !== activeTab) {
-      setIsAnimating(true);
-      setActiveTab(tab);
-      setCurrentSlide(0);
-      setTimeout(() => setIsAnimating(false), 500);
-    }
-  };
+  // Fetch courses data
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/courses`);
+        console.log(response);
+        const data = await response.json();
+        console.log(response);  
+        
+        if (data.success) {
+          const formattedCourses = data.courses.map(course => ({
+            _id: course._id,
+            title: course.title,
+            description: course.description,
+            level: course.level || 'Intermediate',
+            instructor: {
+              name: course.instructor?.name || 'John Doe',
+              avatar: course.instructor?.image || "/default-avatar.png"
+            },
+            stats: {
+              videos: course.videoCount || 56,
+              exercises: course.exercises || 30,
+              quizzes: course.quizCount || 15,
+              downloads: course.downloads || 10
+            },
+            duration: course.duration || 4,
+            enrolled: course.enrolledCount || 0,
+            rating: course.rating || 4.9,
+            reviews: course.reviews || 0,
+            image: course.image
+          }));
+          
+          setCourses(formattedCourses);
+        }
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
 
   const nextSlide = () => {
-    if (!isAnimating) {
+    if (!isAnimating && courses.length > 0) {
       setIsAnimating(true);
-      setCurrentSlide((prev) => 
-        (prev + 1) % Math.ceil(coursesData[activeTab].length / 4)
-      );
+      const maxSlides = Math.ceil(courses.length / 3);
+      setCurrentSlide((prev) => (prev + 1) % maxSlides);
       setTimeout(() => setIsAnimating(false), 500);
     }
   };
 
   const prevSlide = () => {
-    if (!isAnimating) {
+    if (!isAnimating && courses.length > 0) {
       setIsAnimating(true);
-      setCurrentSlide((prev) => 
-        (prev - 1 + Math.ceil(coursesData[activeTab].length / 4)) % Math.ceil(coursesData[activeTab].length / 4)
-      );
+      const maxSlides = Math.ceil(courses.length / 3);
+      setCurrentSlide((prev) => (prev - 1 + maxSlides) % maxSlides);
       setTimeout(() => setIsAnimating(false), 500);
     }
   };
 
   useEffect(() => {
-    const timer = setInterval(nextSlide, 5000);
+    let timer;
+    if (!loading && courses.length > 0) {
+      timer = setInterval(nextSlide, 5000);
+    }
     return () => clearInterval(timer);
-  }, [activeTab]);
+  }, [loading, courses.length]);
 
   const slideVariants = {
     enter: (direction) => ({
@@ -255,6 +101,16 @@ export default function LatestCourses() {
     })
   };
 
+  const formatDuration = (months) => `${months} months`;
+
+  if (loading) {
+    return (
+      <div className="min-h-[600px] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
   return (
     <section className="bg-gradient-to-b from-gray-50 to-white py-20">
       <div className="container max-w-7xl mx-auto px-6">
@@ -272,24 +128,6 @@ export default function LatestCourses() {
           </p>
         </motion.div>
 
-        <div className="flex flex-wrap justify-center gap-3 mb-12">
-          {tabs.map((tab) => (
-            <motion.button
-              key={tab}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={`px-6 py-3 rounded-full text-sm font-medium transition-all duration-300 ${
-                activeTab === tab
-                  ? "bg-[#333333] text-white shadow-lg"
-                  : "bg-white text-gray-700 hover:bg-gray-100 shadow-md"
-              }`}
-              onClick={() => handleTabClick(tab)}
-            >
-              {tab}
-            </motion.button>
-          ))}
-        </div>
-
         <div className="relative overflow-hidden">
           <AnimatePresence initial={false} custom={currentSlide}>
             <motion.div
@@ -303,28 +141,33 @@ export default function LatestCourses() {
                 x: { type: "spring", stiffness: 100, damping: 50 },
                 opacity: { duration: 0.5 }
               }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
             >
-              {coursesData[activeTab]
-                .slice(currentSlide * 4, (currentSlide + 1) * 4)
-                .map((course, index) => (
-                  <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="group"
-                  >
-                    <Link to={course.link} className="block">
-                      <div className="bg-white rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
+              {courses.length === 0 ? (
+                <div className="col-span-3 text-center py-12">
+                  <p className="text-gray-500">No courses available</p>
+                </div>
+              ) : (
+                courses
+                  .slice(currentSlide * 3, (currentSlide + 1) * 3)
+                  .map((course, index) => (
+                    <motion.div
+                      key={course._id || index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                    >
+                      <Link to={`/courses/${course._id}`}>
                         <div className="relative">
                           {course.image ? (
                             <img
                               src={course.image}
-                              alt={course.title}
+                              alt={course.image.alt || course.title}
                               className="w-full h-48 object-cover"
                               onError={(e) => {
-                                e.target.style.display = 'none'; // Hide the image if it fails to load
+                                e.target.onerror = null;
+                                e.target.src = 'https://res.cloudinary.com/dqt4zammn/image/upload/v1734429178/api5kfd3wfdkakatqsbn.jpg';
                               }}
                             />
                           ) : (
@@ -332,49 +175,92 @@ export default function LatestCourses() {
                               <span className="text-gray-500">No Image Available</span>
                             </div>
                           )}
-                          <div className="absolute inset-0 bg-black bg-opacity-20 transition-opacity duration-300 group-hover:bg-opacity-30" />
-                        </div>
-                        <div className="p-6">
-                          <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
-                            {course.title}
-                          </h3>
-                          <p className="text-sm text-gray-600 mb-4">
-                            <span className="font-medium">{course.enrolled.toLocaleString()}</span>{" "}
-                            Enrolled
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-500">
-                              {course.language}
-                            </span>
-                            <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-medium">
-                              Premium
-                            </span>
+                          <div className="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-sm font-medium text-blue-600">
+                            {course.level}
                           </div>
                         </div>
-                      </div>
-                    </Link>
-                  </motion.div>
-                ))}
+
+                        <div className="p-6">
+                          <div className="flex items-center gap-3 mb-4">
+                            <img
+                              src={course.instructor.avatar}
+                              alt={course.instructor.name}
+                              className="w-8 h-8 rounded-full"
+                            />
+                            <div>
+                              <p className="text-sm text-gray-600">Instructor</p>
+                              <p className="font-medium text-blue-600">{course.instructor.name}</p>
+                            </div>
+                          </div>
+
+                          <h3 className="text-xl font-bold mb-3 text-gray-900 line-clamp-2">
+                            {course.title}
+                          </h3>
+                          <p className="text-gray-600 mb-4 line-clamp-2">
+                            {course.description}
+                          </p>
+
+                          <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div className="flex items-center gap-2">
+                              <BookOpen className="w-4 h-4 text-blue-600" />
+                              <span className="text-sm text-gray-600">{course.stats.videos} videos</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Star className="w-4 h-4 text-blue-600" />
+                              <span className="text-sm text-gray-600">{course.stats.exercises} exercises</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <MessageCircle className="w-4 h-4 text-blue-600" />
+                              <span className="text-sm text-gray-600">{course.stats.quizzes} quizzes</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Download className="w-4 h-4 text-blue-600" />
+                              <span className="text-sm text-gray-600">{course.stats.downloads} downloads</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-4 h-4 text-blue-600" />
+                              <span className="text-sm text-gray-600">{course.duration} months</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-blue-600">{course.enrolled}</span>
+                              <Star className="w-4 h-4 text-yellow-400" />
+                              <span className="text-sm font-medium text-blue-600">{course.rating}</span>
+                              <MessageCircle className="w-4 h-4 text-blue-600" />
+                              <span className="text-sm font-medium text-blue-600">{course.reviews}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  ))
+              )}
             </motion.div>
           </AnimatePresence>
 
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="absolute top-1/2 -left-4 transform -translate-y-1/2 bg-white p-3 rounded-full shadow-lg text-gray-800 hover:bg-gray-50 focus:outline-none"
-            onClick={prevSlide}
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </motion.button>
+          {courses.length > 3 && (
+            <>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="absolute top-1/2 -left-4 transform -translate-y-1/2 bg-white p-3 rounded-full shadow-lg text-gray-800 hover:bg-gray-50 focus:outline-none"
+                onClick={prevSlide}
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </motion.button>
 
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="absolute top-1/2 -right-4 transform -translate-y-1/2 bg-white p-3 rounded-full shadow-lg text-gray-800 hover:bg-gray-50 focus:outline-none"
-            onClick={nextSlide}
-          >
-            <ChevronRight className="w-6 h-6" />
-          </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="absolute top-1/2 -right-4 transform -translate-y-1/2 bg-white p-3 rounded-full shadow-lg text-gray-800 hover:bg-gray-50 focus:outline-none"
+                onClick={nextSlide}
+              >
+                <ChevronRight className="w-6 h-6" />
+              </motion.button>
+            </>
+          )}
         </div>
       </div>
     </section>

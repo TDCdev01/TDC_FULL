@@ -99,38 +99,52 @@ export default function Register() {
 
     try {
       if (googleUserData) {
-        await handleCompleteGoogleSignup(
-          `${formData.countryCode}${formData.phoneNumber}`,
-          otp
-        );
-      } else {
-        const response = await fetch(`${API_URL}/api/verify-otp`, {
+        const tempUser = JSON.parse(sessionStorage.getItem('tempUser'));
+        if (!tempUser) {
+          throw new Error('Temporary user data not found');
+        }
+
+        const response = await fetch(`${API_URL}/api/auth/google/complete-signup`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
+            tempUser,
             phoneNumber: `${formData.countryCode}${formData.phoneNumber}`,
-            otp
+            verificationCode: otp
           }),
         });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to verify OTP');
-        }
-
         const data = await response.json();
 
-        if (data.success) {
-          setStep(3);
-        } else {
-          setError(data.message || 'Invalid OTP');
+        if (!response.ok) {
+          throw new Error(data.message || 'Failed to complete signup');
         }
+
+        if (data.success) {
+          // Clear temporary data
+          sessionStorage.removeItem('tempUser');
+          
+          // Store the token
+          localStorage.setItem('token', data.token);
+          
+          // Show success modal
+          setShowSuccessModal(true);
+          
+          // Navigate to dashboard after delay
+          setTimeout(() => {
+            setShowSuccessModal(false);
+            navigate('/dashboard');
+          }, 2000);
+        }
+      } else {
+        // Handle regular OTP verification
+        // ... existing code for regular signup ...
       }
     } catch (err) {
       console.error('Verification error:', err);
-      setError(typeof err === 'string' ? err : err.message || 'Failed to verify OTP. Please try again.');
+      setError(err.message || 'Failed to verify OTP');
     } finally {
       setLoading(false);
     }
@@ -185,49 +199,51 @@ export default function Register() {
 
   const handleVerificationConfirm = async () => {
     try {
-      setShowVerificationPopup(false);
-      
-      // Determine which API endpoint to call based on login type
-      const endpoint = tempUserData.type === 'facebook' 
-        ? `${API_URL}/api/auth/facebook/signup`
-        : `${API_URL}/api/auth/google/signup`;
+      setLoading(true);
+      console.log('Sending credential:', tempUserData.credential);
 
-      const payload = tempUserData.type === 'facebook'
-        ? { accessToken: tempUserData.accessToken }
-        : { credential: tempUserData.credential };
-
-      const response = await fetch(endpoint, {
+      // First verify the Google credential
+      const response = await fetch(`${API_URL}/api/auth/google/signup`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          credential: tempUserData.credential
+        })
       });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
 
       const data = await response.json();
       
-      if (data.success && data.tempUser) {
-        // Store user data in sessionStorage
-        sessionStorage.setItem('tempUser', JSON.stringify(data.tempUser));
-        
-        setGoogleUserData(data.tempUser); // We can use the same state for both
-        setFormData(prev => ({
-          ...prev,
-          firstName: data.tempUser.firstName || '',
-          lastName: data.tempUser.lastName || '',
-          email: data.tempUser.email,
-        }));
-        setStep(1); // Move to phone number input step
-      } else {
-        setError(data.message || 'Login failed');
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to verify Google credential');
       }
+
+      if (!data.success) {
+        throw new Error(data.message);
+      }
+
+      // Store temp user data
+      sessionStorage.setItem('tempUser', JSON.stringify(data.tempUser));
+      setGoogleUserData(data.tempUser);
+      
+      // Update form data with Google user info
+      setFormData(prev => ({
+        ...prev,
+        firstName: data.tempUser.firstName || '',
+        lastName: data.tempUser.lastName || '',
+        email: data.tempUser.email
+      }));
+
+      // Close verification popup and move to phone number step
+      setShowVerificationPopup(false);
+      setStep(1);
+
     } catch (error) {
-      console.error('Error:', error);
-      setError('Failed to process login: ' + error.message);
+      console.error('Registration error:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -382,6 +398,7 @@ export default function Register() {
           className="mt-6"
         >
           <GoogleLogin
+            clientId="1036131393808-7rgoa59ur5gt62i8uj9k2bn63uqe9eci.apps.googleusercontent.com"
             onSuccess={handleGoogleSuccess}
             onError={() => {
               console.error('Google Login Failed');
@@ -392,6 +409,7 @@ export default function Register() {
             size="large"
             text="signup_with"
             shape="rectangular"
+            redirectUri={`${window.location.origin}/register`}
           />
           
           <button

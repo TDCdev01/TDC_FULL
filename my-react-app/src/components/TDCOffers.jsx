@@ -6,29 +6,29 @@ import { useState } from 'react';
 const offerItems = [
   {
     icon: Book,
-    title: 'Self-paced Courses',
-    description: 'Learn AI, Data Science, and more with industry-aligned courses designed for flexibility and career growth. Get Certified!',
+    title: 'Hands-On Learning',
+    description: 'Escape the digital world and immerse yourself in learning with our comprehensive physical materials, including textbooks, workbooks, and project guides.',
     bgColor: 'bg-[#f0f7ff]',
     iconColor: 'text-[#0066ff]'
   },
   {
     icon: Tv,
-    title: 'Hands On Knowledge',
-    description: 'Gain hands-on knowledge, work on real-world projects, secure internships, and unlock job opportunities',
+    title: 'Personalized Mentorship',
+    description: 'Benefit from weekly calls with experienced mentors who will help you refine your skills, validate your ideas, and guide you toward a successful career.',
     bgColor: 'bg-[#fdf2ff]',
     iconColor: 'text-[#9333ea]'
   },
   {
     icon: Gamepad2,
-    title: 'TDC LAB',
-    description: 'Pre-configured Environment: Provides an easy, ready-to-use setup for practicing data skills without needing complex configurations.',
+    title: 'Accelerated Learning',
+    description: 'Skip the setup and dive straight into coding with our pre-configured practice labs. Maximize your learning time and gain hands-on experience from day one.',
     bgColor: 'bg-[#f0fff4]',
     iconColor: 'text-[#22c55e]'
   },
   {
     icon: Building2,
-    title: 'Guided Success',
-    description: 'Get mentored by highly experienced professionals with personalized support, interview preparation, and guidance at every step of your career journey.',
+    title: 'Interactive Live Classes',
+    description: 'Experience focused learning with our interactive live classes. Get your questions answered instantly and accelerate your learning with real-time instructor support.',
     bgColor: 'bg-[#fff7ed]',
     iconColor: 'text-[#f97316]'
   }
@@ -98,9 +98,9 @@ export default function TDCOffers() {
   };
 
   return (
-    <section className="py-20 bg-[#fcfcf8]">
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="text-center mb-16">
+    <section className="py-16 bg-[#fcfcf8]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-[#333333] mb-4">
             What TDC offers you?
           </h2>
@@ -109,26 +109,28 @@ export default function TDCOffers() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+          <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-6">
             {offerItems.map((item, index) => (
               <motion.div
                 key={index}
-                className={`${item.bgColor} rounded-xl p-6 hover:shadow-lg transition-shadow duration-300`}
-                whileHover={{ scale: 1.05 }}
+                className={`${item.bgColor} rounded-xl p-6 h-[260px] flex flex-col justify-between hover:shadow-lg transition-shadow duration-300`}
+                whileHover={{ scale: 1.02 }}
               >
-                <div className={`${item.iconColor} mb-4`}>
-                  <item.icon className="w-10 h-10" strokeWidth={1.5} />
+                <div>
+                  <div className={`${item.iconColor} mb-3`}>
+                    <item.icon className="w-8 h-8" strokeWidth={1.5} />
+                  </div>
+                  <h3 className="text-lg font-semibold text-[#333333] mb-2">
+                    {item.title}
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    {item.description}
+                  </p>
                 </div>
-                <h3 className="text-lg font-semibold text-[#333333] mb-2">
-                  {item.title}
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  {item.description}
-                </p>
                 <Link
                   to="#"
-                  className="inline-flex items-center text-[#333333] font-medium hover:gap-2 transition-all duration-300"
+                  className="inline-flex items-center text-[#333333] font-medium hover:gap-2 transition-all duration-300 mt-2"
                 >
                   Explore More 
                   <span className="ml-2">→</span>
@@ -137,12 +139,18 @@ export default function TDCOffers() {
             ))}
           </div>
 
-          <div className="hidden lg:block">
-            <img
-              src="https://res.cloudinary.com/dqt4zammn/image/upload/v1735478059/TDCoffers_s7c0vs.jpg"
-              alt="Student with Laptop"
-              className="rounded-2xl w-full object-cover h-full"
-            />
+          <div className="hidden lg:block lg:col-span-5">
+            <div className="h-full w-full rounded-2xl overflow-hidden">
+              <img
+                src="https://res.cloudinary.com/dqt4zammn/image/upload/v1735478059/TDCoffers_s7c0vs.jpg"
+                alt="Student with Laptop"
+                className="w-full h-[540px] object-contain rounded-2xl"
+                style={{
+                  objectPosition: 'center',
+                  backgroundColor: '#fcfcf8'
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>

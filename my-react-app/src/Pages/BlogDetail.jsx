@@ -46,7 +46,7 @@ export default function BlogDetail() {
     switch (section.type) {
       case 'text':
         return (
-          <div className="prose prose-lg max-w-none">
+          <div className="prose max-w-none">
             <ReactQuill
               value={section.content}
               readOnly={true}
@@ -54,31 +54,55 @@ export default function BlogDetail() {
             />
           </div>
         );
+      
       case 'code':
         return (
           <pre className="bg-gray-900 text-white p-4 rounded-lg overflow-x-auto">
             <code>{section.content}</code>
           </pre>
         );
+      
       case 'image':
         return (
-          <img
-            src={section.content}
-            alt="Blog content"
-            className="w-full rounded-lg"
-          />
+          <figure className="my-8">
+            <img
+              src={section.content.url || section.content}
+              alt={section.content.caption || "Blog image"}
+              className="w-full rounded-lg shadow-lg"
+            />
+            {section.content.caption && (
+              <figcaption className="mt-2 text-center text-sm text-gray-600">
+                {section.content.caption}
+              </figcaption>
+            )}
+          </figure>
         );
+      
       case 'video':
         return (
-          <div className="aspect-w-16 aspect-h-9">
+          <div className="relative pb-[56.25%] h-0">
             <iframe
               src={section.content}
-              title="Embedded video"
+              className="absolute top-0 left-0 w-full h-full rounded-lg"
               allowFullScreen
-              className="w-full rounded-lg"
             />
           </div>
         );
+      
+      case 'callToAction':
+        return (
+          <div className="my-8 flex justify-center">
+            <a
+              href={section.content.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-md hover:shadow-lg"
+            >
+              {section.content.text}
+            </a>
+          </div>
+        );
+      
       default:
         return null;
     }
@@ -126,7 +150,7 @@ export default function BlogDetail() {
               </div>
               <div className="flex items-center">
                 <User className="w-5 h-5 mr-2" />
-                {blog.author?.firstName || 'Admin'}
+                {blog.authorNameFE || 'Unknown Author'}
               </div>
             </div>
           </div>

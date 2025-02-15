@@ -3,13 +3,14 @@ const mongoose = require('mongoose');
 const sectionSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ['text', 'code', 'image', 'video'],
+    enum: ['text', 'code', 'image', 'video', 'callToAction'],
     required: true
   },
   content: {
-    type: String,
+    type: mongoose.Schema.Types.Mixed,
     required: true
-  }
+  },
+  caption: String // Optional, for images
 });
 
 const blogPostSchema = new mongoose.Schema({
@@ -18,14 +19,31 @@ const blogPostSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  authorNameFE: {  // New field for frontend display
+    type: String,
+    required: true,
+    trim: true
+  },
+  authorName: {  // Keep this for backend reference
+    type: String,
+    required: true,
+    trim: true
+  },
+  bannerImage: {
+    url: {
+      type: String,
+      required: false
+    },
+    alt: {
+      type: String,
+      required: false
+    }
+  },
   sections: [sectionSchema],
   author: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'Admin',
     required: true
-  },
-  authorName: {
-    type: String,
   },
   viewCount: {
     type: Number,
@@ -38,8 +56,31 @@ const blogPostSchema = new mongoose.Schema({
   updatedAt: {
     type: Date,
     default: Date.now
-  }
-});
+  },
+  tags: [{
+    type: String,
+    enum: ['Featured', 'New', 'Popular', 'Trending']
+  }],
+  topics: [{
+    type: String,
+    enum: [
+      'Power BI', 
+      'Python', 
+      'Data Science', 
+      'Machine Learning',
+      'SQL', 
+      'Data Analytics',
+      'NumPy',
+      'Pandas',
+      'Azure',
+      'AWS',
+      'Database',
+      'Big Data',
+      'Data Engineering',
+      'Data Visualization'
+    ]
+  }]
+}, { timestamps: true });
 
 blogPostSchema.pre('validate', async function(next) {
   if (this.author) {
@@ -47,16 +88,16 @@ blogPostSchema.pre('validate', async function(next) {
       const Admin = mongoose.model('Admin');
       console.log('[BlogPost Pre-validate] Looking up admin with ID:', this.author);
 
-      // Try to get the admin document
+      
       const admin = await Admin.findById(this.author);
       console.log('[BlogPost Pre-validate] Found admin:', admin);
       
       if (admin) {
-        // Use the 'name' field from admin document
+        
         this.authorName = admin.name || 'Unknown Author';
         console.log('[BlogPost Pre-validate] Set authorName to:', this.authorName);
       } else {
-        // If no admin found, try to get from the current request context
+        
         if (this._currentUser) {
           this.authorName = this._currentUser.name || 'Unknown Author';
           console.log('[BlogPost Pre-validate] Set authorName from current user to:', this.authorName);
@@ -67,7 +108,7 @@ blogPostSchema.pre('validate', async function(next) {
       }
     } catch (error) {
       console.error('[BlogPost Pre-validate] Error setting author name:', error);
-      // If we have current user info, use it even if the lookup failed
+      
       if (this._currentUser) {
         this.authorName = this._currentUser.name || 'Unknown Author';
         console.log('[BlogPost Pre-validate] Set authorName from current user after error:', this.authorName);

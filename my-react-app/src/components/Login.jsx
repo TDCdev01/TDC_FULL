@@ -208,7 +208,8 @@ export default function Login() {
 
   return (
     <GoogleOAuthProvider 
-      clientId="860236340511-50m5cq2vv6tb1lhhhmttt3v65a6hklki.apps.googleusercontent.com"
+      clientId="1036131393808-7rgoa59ur5gt62i8uj9k2bn63uqe9eci.apps.googleusercontent.com"
+      
     >
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -375,6 +376,7 @@ export default function Login() {
               <div className="mt-6 grid grid-cols-2 gap-3">
                 {!user ? (
                   <GoogleLogin
+                    clientId="1036131393808-7rgoa59ur5gt62i8uj9k2bn63uqe9eci.apps.googleusercontent.com"
                     onSuccess={handleGoogleSuccess}
                     onError={handleGoogleError}
                   />

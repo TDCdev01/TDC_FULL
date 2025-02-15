@@ -3,39 +3,43 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Code, Terminal, BookOpen, Award, Brain, Laptop } from 'lucide-react';
 
 export default function LearnPracticeSection() {
-  const [activeTab, setActiveTab] = useState('codekata');
+  const [activeTab, setActiveTab] = useState('Analyst');
 
   const tabs = [
-    { id: 'codekata', label: 'Codekata' },
-    { id: 'webkata', label: 'Webkata' },
-    { id: 'debugging', label: 'Debugging' },
-    { id: 'ide', label: 'IDE' },
-    { id: 'rewards', label: 'Rewards' },
-    { id: 'referral', label: 'Referral' },
-    { id: 'forum', label: 'Forum' },
+    { id: 'Analyst', label: 'Analyst' },
+    { id: 'Transitioner', label: 'Transitioner' },
+    { id: 'Specialist', label: 'Specialist' },
+    { id: 'Executive', label: 'Executive' },
   ];
 
   const content = {
-    codekata: {
-      title: "Codekata",
-      description: "An interactive platform for programming practice with 1500+ coding problems curated by top programming veterans in the IT industry. CodeKata tracks your performance and develops your coding profile to showcase your skill set in the job recruitment process.",
+    Analyst: {
+      title: "Analyst",
+      description: "Lacks practical skills for entry-level jobs. Solution: TopDataCoach's recorded courses and mentorship build a portfolio and provide job-ready skills.",
       image: "https://res.cloudinary.com/dqt4zammn/image/upload/v1734429178/api5kfd3wfdkakatqsbn.jpg",
       icon: <Code className="w-6 h-6" />,
-      buttonText: "Explore Codekata"
+      buttonText: "Explore Analyst"
     },
-    webkata: {
-      title: "Webkata",
-      description: "Master web development through hands-on practice. Build responsive websites and learn modern frontend technologies through interactive challenges.",
-      image: "https://your-image-url.com/webkata.jpg",
+    Transitioner: {
+      title: "Transitioner",
+      description: "Can't demonstrate proficiency to employers. Solution: TopDataCoach's mentor courses and internships offer real-world project experience and personalized feedback.",
+      image: "https://res.cloudinary.com/dqt4zammn/image/upload/v1734429178/api5kfd3wfdkakatqsbn.jpg",
       icon: <Laptop className="w-6 h-6" />,
-      buttonText: "Start Webkata"
+      buttonText: "Start Transitioner"
     },
-    debugging: {
-      title: "Debugging",
-      description: "Enhance your problem-solving skills by finding and fixing bugs in real-world code scenarios. Learn debugging techniques used by professional developers.",
-      image: "https://your-image-url.com/debugging.jpg",
+    Specialist: {
+      title: "Specialist",
+      description: "Needs to upskill for career advancement. Solution: TopDataCoach's specialized architecture and domain courses enhance expertise and open new opportunities.",
+      image: "https://res.cloudinary.com/dqt4zammn/image/upload/v1734429178/api5kfd3wfdkakatqsbn.jpg",
       icon: <Terminal className="w-6 h-6" />,
-      buttonText: "Practice Debugging"
+      buttonText: "Practice Specialist"
+    },
+    Executive: {
+      title: "Specialist",
+      description: "Requires data literacy for strategic decisions. Solution: TopDataCoach's mentorship program develops leadership and data skills through non-profit projects.",
+      image: "https://res.cloudinary.com/dqt4zammn/image/upload/v1734429178/api5kfd3wfdkakatqsbn.jpg",
+      icon: <Terminal className="w-6 h-6" />,
+      buttonText: "Practice Specialist"
     },
     // Add content for other tabs...
   };

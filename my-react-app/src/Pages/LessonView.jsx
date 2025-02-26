@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle, Download, BookOpen, Image as ImageIcon, X } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Download, BookOpen, Image as ImageIcon, X, FileText, Lock, ArrowRight, Eye } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { API_URL } from '../config/config';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -17,6 +17,9 @@ export default function LessonView() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [selectedPDF, setSelectedPDF] = useState(null);
+  const [showPDF, setShowPDF] = useState(false);
+  const [currentPDF, setCurrentPDF] = useState(null);
+  const [nextLesson, setNextLesson] = useState(null);
 
   useEffect(() => {
     const fetchLessonData = async () => {
@@ -26,10 +29,43 @@ export default function LessonView() {
         
         if (data.success) {
           setCourse(data.course);
-          const module = data.course.modules.find(m => m._id === moduleId);
-          setCurrentModule(module);
-          const lesson = module.lessons.find(l => l._id === lessonId);
-          setCurrentLesson(lesson);
+          
+          // Find current module and lesson
+          const currentModule = data.course.modules.find(m => m._id === moduleId);
+          if (!currentModule) {
+            console.error('Module not found');
+            return;
+          }
+          setCurrentModule(currentModule);
+          
+          const currentLesson = currentModule.lessons.find(l => l._id === lessonId);
+          if (!currentLesson) {
+            console.error('Lesson not found');
+            return;
+          }
+          setCurrentLesson(currentLesson);
+          
+          // Find next lesson
+          const currentLessonIndex = currentModule.lessons.findIndex(l => l._id === lessonId);
+          const currentModuleIndex = data.course.modules.findIndex(m => m._id === moduleId);
+          
+          // Check if there's a next lesson in current module
+          if (currentLessonIndex < currentModule.lessons.length - 1) {
+            setNextLesson({
+              moduleId: currentModule._id,
+              lesson: currentModule.lessons[currentLessonIndex + 1]
+            });
+          }
+          // Check if there's a next module with lessons
+          else if (currentModuleIndex < data.course.modules.length - 1) {
+            const nextModule = data.course.modules[currentModuleIndex + 1];
+            if (nextModule.lessons.length > 0) {
+              setNextLesson({
+                moduleId: nextModule._id,
+                lesson: nextModule.lessons[0]
+              });
+            }
+          }
         }
       } catch (error) {
         console.error('Error fetching lesson:', error);
@@ -49,35 +85,6 @@ export default function LessonView() {
       </div>
     );
   }
-
-  // Find next lesson
-  const findNextLesson = () => {
-    const currentModuleIndex = course.modules.findIndex(m => m._id === moduleId);
-    const currentLessonIndex = currentModule.lessons.findIndex(l => l._id === lessonId);
-
-    // Check if there's another lesson in current module
-    if (currentLessonIndex < currentModule.lessons.length - 1) {
-      return {
-        moduleId: moduleId,
-        lesson: currentModule.lessons[currentLessonIndex + 1]
-      };
-    }
-    
-    // Check if there's another module
-    if (currentModuleIndex < course.modules.length - 1) {
-      const nextModule = course.modules[currentModuleIndex + 1];
-      if (nextModule.lessons.length > 0) {
-        return {
-          moduleId: nextModule._id,
-          lesson: nextModule.lessons[0]
-        };
-      }
-    }
-
-    return null;
-  };
-
-  const nextLesson = findNextLesson();
 
   // Update the video URL formatting function
   const getEmbedUrl = (url) => {
@@ -149,232 +156,277 @@ export default function LessonView() {
     }
   };
 
+  const handlePDFView = (url) => {
+    setCurrentPDF(url);
+    setShowPDF(true);
+  };
+
+  // Function to handle lesson navigation
+  const handleLessonClick = (moduleId, lessonId) => {
+    navigate(`/course/${courseId}/modules/${moduleId}/lessons/${lessonId}`);
+  };
+
+  // Add this function to check if a file exists before displaying
+  const checkFileExists = async (url) => {
+    try {
+      const response = await fetch(url, { method: 'HEAD' });
+      return response.ok;
+    } catch (error) {
+      console.error('Error checking file:', error);
+      return false;
+    }
+  };
+
   return (
     <>
       <Navbar />
       <div className="min-h-screen bg-gradient-to-br from-[#f8f9fa] to-[#e9ecef]">
-        {/* Top Navigation */}
-        <div className="bg-white border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => navigate(`/courses/${courseId}`)}
-                className="flex items-center text-gray-600 hover:text-gray-900 transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                Back to Course
-              </button>
-              <div className="flex items-center space-x-4">
-                <button className="flex items-center text-gray-600 hover:text-gray-900">
-                  <CheckCircle className="w-5 h-5 mr-2" />
-                  Mark as Complete
-                </button>
-              </div>
-            </div>
-          </div>
+        {/* Navigation Header */}
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <button 
+            onClick={() => navigate(`/course/${courseId}`)}
+            className="flex items-center  transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 mr-2" />
+            Back to Course
+          </button>
+          <button className="flex items-center  hover:text-gray-900 transition-colors">
+            <CheckCircle className="w-5 h-5 mr-2" />
+            Mark as Complete
+          </button>
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content */}
+        {/* Main Content */}
+        <div className="container mx-auto px-4 pb-8">
+          <div className="max-w-[1400px] mx-auto grid lg:grid-cols-3 gap-8">
+            {/* Main Content Area */}
             <div className="lg:col-span-2">
               <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-                {/* Video Player */}
-                <div className="aspect-w-16 aspect-h-9">
-                  <iframe
-                    src={getEmbedUrl(currentLesson.videoUrl)}
-                    title={currentLesson.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="w-full h-full"
-                  />
-                </div>
+                {/* Video Section */}
+                {currentLesson.videoUrl && (
+                  <div className="aspect-w-16 aspect-h-9">
+                    <iframe
+                      src={getEmbedUrl(currentLesson.videoUrl)}
+                      className="w-full h-full"
+                      allowFullScreen
+                    />
+                  </div>
+                )}
 
-                {/* Lesson Content */}
-                <div className="p-6">
+                <div className="p-8">
                   <h1 className="text-2xl font-bold text-gray-900 mb-4">
                     {currentLesson.title}
                   </h1>
-                  <p className="text-gray-600 mb-6">
-                    {currentLesson.description}
-                  </p>
+                  
+                  {currentLesson.description && (
+                    <p className="text-gray-600 mb-6">{currentLesson.description}</p>
+                  )}
 
-                  <div className="space-y-6">
-                    {/* Text Content */}
-                    {currentLesson.content?.text && (
-                        <div className="mt-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Lesson Content</h3>
-                            <div className="prose prose-blue max-w-none">
-                                <p className="text-gray-600 whitespace-pre-wrap">{currentLesson.content.text}</p>
+                  {/* Content Sections */}
+                  <div className="space-y-8">
+                    {currentLesson.sections?.map((section, index) => (
+                      <div key={index} className="border-t pt-6 first:border-t-0 first:pt-0">
+                        {/* Text Section */}
+                        {section.type === 'text' && (
+                          <div className="prose max-w-none">
+                            <p className="text-gray-700">{section.content.text}</p>
+                          </div>
+                        )}
+
+                        {/* Code Section */}
+                        {section.type === 'code' && (
+                          <div className="bg-gray-50 rounded-lg overflow-hidden">
+                            <div className="bg-gray-100 px-4 py-2 flex justify-between items-center">
+                              <span className="text-sm font-medium text-gray-600">
+                                {section.content.language}
+                              </span>
                             </div>
-                        </div>
-                    )}
-
-                    {/* Code Example */}
-                    {currentLesson.content?.code && (
-                        <div className="mt-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Code Example</h3>
                             <CodeEditor
-                                value={currentLesson.content.code}
-                                language={currentLesson.content.codeLanguage || 'javascript'}
-                                onChange={() => {}} // Read-only for students
-                                options={{
-                                    readOnly: true,
-                                    minimap: { enabled: false },
-                                    fontSize: 14,
-                                    lineNumbers: 'on',
-                                    scrollBeyondLastLine: false,
-                                    automaticLayout: true,
-                                    tabSize: 2,
-                                }}
+                              value={section.content.code}
+                              language={section.content.language}
+                              readOnly={true}
                             />
-                        </div>
-                    )}
+                          </div>
+                        )}
 
-                    {/* Images */}
-                    {currentLesson.images?.length > 0 && (
-                        <div className="mt-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Images</h3>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                {currentLesson.images.map((image, index) => (
-                                    <div 
-                                        key={index} 
-                                        className="relative group cursor-pointer"
-                                        onClick={() => setSelectedImage(image)}
-                                    >
-                                        <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden">
-                                            <img 
-                                                src={image.url} 
-                                                alt={image.caption} 
-                                                className="object-cover w-full h-full transition-transform group-hover:scale-105"
-                                            />
-                                        </div>
-                                        {image.caption && (
-                                            <p className="mt-1 text-sm text-gray-500">{image.caption}</p>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                        {/* Image Section */}
+                        {section.type === 'image' && (
+                          <div className="space-y-2">
+                            <img
+                              src={section.content.url}
+                              alt={section.content.caption || 'Lesson image'}
+                              className="rounded-lg w-full"
+                              onClick={() => setSelectedImage(section.content)}
+                            />
+                            {section.content.caption && (
+                              <p className="text-sm text-gray-500 text-center">
+                                {section.content.caption}
+                              </p>
+                            )}
+                          </div>
+                        )}
 
-                    {/* Downloadable Files */}
-                    {currentLesson.downloadableFiles?.length > 0 && (
-                        <div className="mt-6">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Downloads</h3>
-                            <div className="space-y-2">
-                                {currentLesson.downloadableFiles.map((file, index) => (
-                                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                        <div className="flex items-center space-x-3">
-                                            <Download className="w-5 h-5 text-gray-400" />
-                                            <div>
-                                                <p className="text-sm font-medium text-gray-900">{file.name}</p>
-                                                <p className="text-xs text-gray-500">{file.size}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            {file.name.toLowerCase().endsWith('.pdf') && (
-                                                <button
-                                                    onClick={() => setSelectedPDF(file)}
-                                                    className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-2"
-                                                >
-                                                    <BookOpen className="w-4 h-4" />
-                                                    View
-                                                </button>
-                                            )}
-                                            <button
-                                                onClick={async () => {
-                                                    setIsDownloading(true);
-                                                    try {
-                                                        await handleDownload(file);
-                                                    } finally {
-                                                        setIsDownloading(false);
-                                                    }
-                                                }}
-                                                disabled={isDownloading}
-                                                className="px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors flex items-center gap-2"
-                                            >
-                                                {isDownloading ? (
-                                                    <LoadingSpinner size="small" />
-                                                ) : (
-                                                    <Download className="w-4 h-4" />
-                                                )}
-                                                {isDownloading ? 'Downloading...' : 'Download'}
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
+                        {/* File Section */}
+                        {section.type === 'file' && (
+                          <div className="bg-white shadow-md rounded-lg overflow-hidden mb-6">
+                            <div className="p-6">
+                              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                                <FileText className="w-5 h-5 mr-2 text-blue-600" />
+                                Downloadable Resource
+                              </h3>
+                              <div className="bg-gray-100 p-4 rounded-lg flex items-center justify-between">
+                                <div>
+                                  <p className="font-medium text-gray-800">{section.content.name}</p>
+                                  <p className="text-sm text-gray-600">{section.content.size}</p>
+                                </div>
+                                <div className="flex space-x-2">
+                                  {/* Add a button to retry loading the file if it fails */}
+                                  {section.content.url && (
+                                    <>
+                                      {(section.content.type?.includes('pdf') || 
+                                        section.content.name?.toLowerCase().endsWith('.pdf')) && (
+                                        <button
+                                          onClick={async () => {
+                                            console.log("Opening PDF:", section.content.url);
+                                            // Check if file exists first
+                                            const exists = await checkFileExists(section.content.url);
+                                            if (exists) {
+                                              setCurrentPDF(section.content.url);
+                                              setShowPDF(true);
+                                            } else {
+                                              alert("The file could not be found. It may have been moved or deleted.");
+                                            }
+                                          }}
+                                          className="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 flex items-center"
+                                        >
+                                          <Eye className="w-4 h-4 mr-2 bg-black" />
+                                          View PDF
+                                        </button>
+                                      )}
+                                      <a
+                                        href={section.content.url}
+                                        download={section.content.name}
+                                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
+                                        onClick={async (e) => {
+                                          // Check if file exists before trying to download
+                                          const exists = await checkFileExists(section.content.url);
+                                          if (!exists) {
+                                            e.preventDefault();
+                                            alert("The file could not be found. It may have been moved or deleted.");
+                                          }
+                                        }}
+                                      >
+                                        <Download className="w-4 h-4 mr-2" />
+                                        Download
+                                      </a>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                        </div>
-                    )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Sidebar */}
-            <div className="lg:col-span-1 space-y-6">
-                {/* Course Navigation */}
-                <div className="bg-white rounded-xl shadow-lg p-6">
+            <div className="lg:col-span-1">
+              <div className="sticky top-4 space-y-6">
+                {/* Course Navigation Card */}
+                <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                  <div className="p-6">
                     <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                        Course Content
+                      Course Content
                     </h2>
+                    
+                    {/* Modules and Lessons List */}
                     <div className="space-y-4">
-                        {course.modules.map((module, moduleIndex) => (
-                            <div key={moduleIndex} className="space-y-2">
-                                <div className="flex items-center justify-between text-gray-700 font-medium">
-                                    <span>Module {moduleIndex + 1}: {module.title}</span>
-                                    <span className="text-sm text-gray-500">{module.duration}</span>
-                                </div>
-                                <div className="pl-4 space-y-1">
-                                    {module.lessons.map((lesson, lessonIndex) => (
-                                        <div
-                                            key={lessonIndex}
-                                            onClick={() => navigate(`/courses/${courseId}/modules/${module._id}/lessons/${lesson._id}`)}
-                                            className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${
-                                                currentLesson._id === lesson._id
-                                                    ? 'bg-blue-50 text-blue-600'
-                                                    : 'hover:bg-gray-50 text-gray-600'
-                                            }`}
-                                        >
-                                            <div className="w-5 h-5 mr-3 flex-shrink-0">
-                                                {currentLesson._id === lesson._id ? (
-                                                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-1.5"></div>
-                                                ) : (
-                                                    <div className="w-2 h-2 bg-gray-300 rounded-full mt-1.5"></div>
-                                                )}
-                                            </div>
-                                            <div>
-                                                <div className="text-sm font-medium">{lesson.title}</div>
-                                                <div className="text-xs text-gray-500">{lesson.duration}</div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
+                      {course?.modules.map((module, moduleIndex) => (
+                        <div key={module._id} className="space-y-2">
+                          {/* Module Header */}
+                          <div className="flex items-center justify-between text-gray-700 font-medium p-2 hover:bg-gray-50 rounded-lg">
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm text-gray-500">Module {moduleIndex + 1}</span>
+                              <span className="text-gray-900">{module.title}</span>
                             </div>
-                        ))}
+                            {module.duration && (
+                              <span className="text-sm text-gray-500">{module.duration}</span>
+                            )}
+                          </div>
+
+                          {/* Lessons List */}
+                          <div className="pl-6 space-y-1">
+                            {module.lessons.map((lesson) => (
+                              <button
+                                key={lesson._id}
+                                onClick={() => handleLessonClick(module._id, lesson._id)}
+                                className={`w-full flex items-center text-left p-2 rounded-lg transition-colors ${
+                                  lesson._id === lessonId 
+                                    ? 'bg-blue-50 text-blue-600' 
+                                    : 'bg-blue-50 hover:bg-gray-50 text-gray-600'
+                                }`}
+                              >
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center">
+                                    {lesson._id === lessonId && (
+                                      <div className="w-2 h-2 bg-blue-600 rounded-full mr-2" />
+                                    )}
+                                    <span className={`truncate ${lesson._id === lessonId ? 'font-medium' : ''}`}>
+                                      {lesson.title}
+                                    </span>
+                                  </div>
+                                  {lesson.duration && (
+                                    <span className="text-sm text-gray-500 mt-0.5">
+                                      {lesson.duration}
+                                    </span>
+                                  )}
+                                </div>
+                                {lesson.isLocked && (
+                                  <span className="ml-2 text-gray-400">
+                                    <Lock className="w-4 h-4" />
+                                  </span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
                     </div>
+                  </div>
                 </div>
 
                 {/* Next Lesson Card */}
                 {nextLesson && (
-                    <div className="bg-white rounded-xl shadow-lg p-6">
-                        <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                            Next Up
-                        </h2>
-                        <div 
-                            className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-                            onClick={() => navigate(`/courses/${courseId}/modules/${nextLesson.moduleId}/lessons/${nextLesson.lesson._id}`)}
-                        >
-                            <p className="font-medium text-gray-900 mb-1">
-                                {nextLesson.lesson.title}
+                  <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div className="p-6">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Next Up</h3>
+                      <button
+                        onClick={() => handleLessonClick(nextLesson.moduleId, nextLesson.lesson._id)}
+                        className="w-full text-left"
+                      >
+                        <div className="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm text-gray-500">Next Lesson</span>
+                            <ArrowRight className="w-4 h-4 text-gray-400" />
+                          </div>
+                          <p className="font-medium text-gray-900 line-clamp-2">
+                            {nextLesson.lesson.title}
+                          </p>
+                          {nextLesson.lesson.duration && (
+                            <p className="text-sm text-gray-500 mt-1">
+                              Duration: {nextLesson.lesson.duration}
                             </p>
-                            <p className="text-sm text-gray-500">
-                                Continue your learning journey
-                            </p>
+                          )}
                         </div>
+                      </button>
                     </div>
+                  </div>
                 )}
+              </div>
             </div>
           </div>
         </div>
@@ -382,37 +434,39 @@ export default function LessonView() {
 
       {/* Image Preview Modal */}
       {selectedImage && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
-              <div className="relative max-w-4xl w-full">
-                  <button
-                      onClick={() => setSelectedImage(null)}
-                      className="absolute -top-12 right-0 text-white hover:text-gray-300"
-                  >
-                      <X className="w-8 h-8" />
-                  </button>
-                  <div className="bg-white rounded-lg overflow-hidden">
-                      <img
-                          src={selectedImage.url}
-                          alt={selectedImage.caption}
-                          className="w-full h-auto"
-                      />
-                      {selectedImage.caption && (
-                          <div className="p-4">
-                              <p className="text-gray-700">{selectedImage.caption}</p>
-                          </div>
-                      )}
-                  </div>
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
+          <div className="relative max-w-4xl w-full">
+            <button
+              onClick={() => setSelectedImage(null)}
+              className="absolute -top-12 right-0 text-white hover:text-gray-300"
+            >
+              <X className="w-8 h-8" />
+            </button>
+            <div className="bg-white rounded-lg overflow-hidden">
+              <img
+                src={selectedImage.url}
+                alt={selectedImage.caption}
+                className="w-full h-auto"
+              />
+              {selectedImage.caption && (
+                <div className="p-4">
+                  <p className="text-gray-700">{selectedImage.caption}</p>
+                </div>
+              )}
+            </div>
           </div>
+        </div>
       )}
 
       {/* Add PDF Viewer Modal */}
-      {selectedPDF && (
-          <PDFViewer
-              url={selectedPDF.url}
-              fileName={selectedPDF.name}
-              onClose={() => setSelectedPDF(null)}
-          />
+      {showPDF && (
+        <PDFViewer
+          url={currentPDF}
+          onClose={() => {
+            setShowPDF(false);
+            setCurrentPDF(null);
+          }}
+        />
       )}
     </>
   );

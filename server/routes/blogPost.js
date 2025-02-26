@@ -58,16 +58,17 @@ router.get('/blog-posts', async (req, res) => {
     const posts = await BlogPost.find()
       .sort({ createdAt: -1 })
       .populate('author', 'name')
-      .lean(); // Use lean() for better performance
-
-    console.log('Posts being sent:', posts); // Debug log
+      .select('title content views createdAt updatedAt bannerImage authorName authorNameFE tags topics')
+      .lean();
 
     res.json({
       success: true,
       posts: posts.map(post => ({
         ...post,
+        views: post.views || 0,
         bannerImage: post.bannerImage || null,
-        authorName: post.authorName
+        authorName: post.authorName,
+        authorNameFE: post.authorNameFE || post.author?.name || post.authorName
       }))
     });
   } catch (error) {
@@ -278,26 +279,199 @@ router.delete('/blog-posts/:postId', auth, async (req, res) => {
 // Increment view count route
 router.post('/blog-posts/:id/increment-view', async (req, res) => {
   try {
-    console.log(`[ViewCount API] Incrementing view for post ID: ${req.params.id}`);
-    
-    const blogPost = await BlogPost.findById(req.params.id);
-    if (!blogPost) {
-      console.log(`[ViewCount API] Blog post not found: ${req.params.id}`);
-      return res.status(404).json({ success: false, message: 'Blog post not found' });
+    const lastViewedAt = req.body.lastViewedAt || new Date().toISOString(); // Default to current time if not provided
+    const post = await BlogPost.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({ success: false, message: 'Post not found' });
     }
 
-    console.log(`[ViewCount API] Current view count: ${blogPost.viewCount}`);
-    await blogPost.incrementViewCount();
-    console.log(`[ViewCount API] Updated view count: ${blogPost.viewCount}`);
-    
-    return res.json({ 
-      success: true, 
-      message: 'View count incremented successfully',
-      newCount: blogPost.viewCount
+    const now = new Date();
+    const lastViewedDate = new Date(lastViewedAt);
+    const timeSinceLastView = now - lastViewedDate;
+
+    // Only increment if more than 10 minutes have passed since the last view
+    if (timeSinceLastView > 600) { // 600000 ms = 10 minutes
+      post.views += 1;
+      await post.save();
+      res.json({ 
+        success: true, 
+        message: 'View count incremented successfully', 
+        newCount: post.views,
+        lastViewedAt: now.toISOString()
+      });
+    } else {
+      res.json({ 
+        success: true, 
+        message: 'View count increment skipped', 
+        newCount: post.views,
+        lastViewedAt: lastViewedAt
+      });
+    }
+  } catch (error) {
+    console.error('Error incrementing view count:', error);
+    res.status(500).json({ success: false, message: 'Error incrementing view count' });
+  }
+});
+
+// Update entire blog post
+router.put('/blog-posts/:id', auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      title,
+      authorNameFE,
+      bannerImage,
+      tags,
+      topics,
+      sections
+    } = req.body;
+
+    const updatedPost = await BlogPost.findByIdAndUpdate(
+      id,
+      {
+        title,
+        authorNameFE,
+        bannerImage,
+        tags,
+        topics,
+        sections
+      },
+      { new: true }
+    );
+
+    if (!updatedPost) {
+      return res.status(404).json({
+        success: false,
+        message: 'Blog post not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Blog post updated successfully',
+      post: updatedPost
     });
   } catch (error) {
-    console.error('[ViewCount API] Error incrementing view count:', error);
-    return res.status(500).json({ success: false, message: 'Error incrementing view count' });
+    console.error('[Update Blog Post] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error updating blog post'
+    });
+  }
+});
+
+// Update a specific section
+router.put('/blog-posts/:postId/sections/:sectionId', auth, async (req, res) => {
+  try {
+    const { postId, sectionId } = req.params;
+    const { content, type } = req.body;
+
+    const post = await BlogPost.findById(postId);
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: 'Blog post not found'
+      });
+    }
+
+    const sectionIndex = post.sections.findIndex(
+      section => section._id.toString() === sectionId
+    );
+
+    if (sectionIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: 'Section not found'
+      });
+    }
+
+    post.sections[sectionIndex].content = content;
+    if (type) {
+      post.sections[sectionIndex].type = type;
+    }
+
+    await post.save();
+
+    res.json({
+      success: true,
+      message: 'Section updated successfully',
+      section: post.sections[sectionIndex]
+    });
+  } catch (error) {
+    console.error('[Update Section] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error updating section'
+    });
+  }
+});
+
+// Delete a section
+router.delete('/blog-posts/:postId/sections/:sectionId', auth, async (req, res) => {
+  try {
+    const { postId, sectionId } = req.params;
+
+    const post = await BlogPost.findById(postId);
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: 'Blog post not found'
+      });
+    }
+
+    post.sections = post.sections.filter(
+      section => section._id.toString() !== sectionId
+    );
+
+    await post.save();
+
+    res.json({
+      success: true,
+      message: 'Section deleted successfully'
+    });
+  } catch (error) {
+    console.error('[Delete Section] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error deleting section'
+    });
+  }
+});
+
+// Add a new section
+router.post('/blog-posts/:postId/sections', auth, async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { type, content } = req.body;
+
+    const post = await BlogPost.findById(postId);
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: 'Blog post not found'
+      });
+    }
+
+    const newSection = {
+      type,
+      content
+    };
+
+    post.sections.push(newSection);
+    await post.save();
+
+    res.json({
+      success: true,
+      message: 'Section added successfully',
+      section: post.sections[post.sections.length - 1]
+    });
+  } catch (error) {
+    console.error('[Add Section] Error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error adding section'
+    });
   }
 });
 

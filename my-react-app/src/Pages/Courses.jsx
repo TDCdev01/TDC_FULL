@@ -192,7 +192,7 @@ export default function Courses() {
                 key={course._id}
                 variants={itemVariants}
                 className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer transform hover:-translate-y-1 w-full"
-                onClick={() => navigate(`/courses/${course._id}`)}
+                onClick={() => navigate(`/course/${course._id}`)}
               >
                 <div className="relative h-44">
                   <img

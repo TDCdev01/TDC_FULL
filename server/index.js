@@ -21,6 +21,8 @@ const auth = require('./middleware/auth');
 const { API_URL } = require('./config/config');
 const BlogPost = require('./models/BlogPost');
 const courseRoutes = require('./routes/courseRoutes');
+const trialRequestRoutes = require('./routes/trialRequests');
+const uploadRoutes = require('./routes/uploadRoutes');
 
 const app = express();
 app.use(cors({
@@ -31,11 +33,17 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Serve static files from the assets directory
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
+
 // Mount the blog posts routes
 app.use('/api', blogPostRoutes);
 
 // Add this with your other app.use statements
 app.use('/api', courseRoutes);
+
+// Use the upload routes
+app.use('/api/uploads', uploadRoutes);
 
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://anshuman:Anshuman123@cluster0.nqygv2g.mongodb.net/TDC?retryWrites=true&w=majority', {
@@ -220,34 +228,6 @@ const sendWelcomeEmail = async (userEmail, firstName) => {
     console.error('Error sending welcome email:', error);
     return false;
   }
-};
-
-// Add the verifyOtp function definition
-const verifyOtp = (phoneNumber, otp) => {
-  const storedData = otpStore.get(phoneNumber);
-  console.log('Stored OTP data:', storedData, 'for phone:', phoneNumber, 'received OTP:', otp);
-
-  if (!storedData) {
-    console.log('No OTP found for this phone number');
-    return false;
-  }
-
-  // Check OTP expiration (5 minutes)
-  if (Date.now() - storedData.timestamp > 5 * 60 * 1000) {
-    console.log('OTP expired');
-    otpStore.delete(phoneNumber);
-    return false;
-  }
-
-  // Verify OTP
-  if (storedData.otp === otp) {
-    console.log('OTP verified successfully');
-    otpStore.delete(phoneNumber); // Clear OTP after successful verification
-    return true;
-  }
-
-  console.log('Invalid OTP');
-  return false;
 };
 
 // New endpoint to complete registration
@@ -607,7 +587,7 @@ app.post('/api/auth/google', async (req, res) => {
 
     const ticket = await googleClient.verifyIdToken({
       idToken: credential,
-      audience: "1036131393808-7rgoa59ur5gt62i8uj9k2bn63uqe9eci.apps.googleusercontent.com"
+      audience: process.env.GOOGLE_CLIENT_ID || "1036131393808-7rgoa59ur5gt62i8uj9k2bn63uqe9eci.apps.googleusercontent.com"
     });
     
     const payload = ticket.getPayload();
@@ -1002,7 +982,7 @@ app.post('/api/auth/google/signup', async (req, res) => {
     // Verify the Google token
     const ticket = await googleClient.verifyIdToken({
       idToken: credential,
-      audience: "1036131393808-7rgoa59ur5gt62i8uj9k2bn63uqe9eci.apps.googleusercontent.com"
+      audience: process.env.GOOGLE_CLIENT_ID || "1036131393808-7rgoa59ur5gt62i8uj9k2bn63uqe9eci.apps.googleusercontent.com"
     });
     
     const payload = ticket.getPayload();
@@ -1020,111 +1000,116 @@ app.post('/api/auth/google/signup', async (req, res) => {
     // Create temporary user data
     const tempUser = {
       email: payload.email,
-      firstName: payload.given_name || '',
-      lastName: payload.family_name || '',
+      firstName: payload.given_name,
+      lastName: payload.family_name,
       googleId: payload.sub,
-      password: crypto.randomBytes(16).toString('hex'),
-      phoneNumber: '',
-      verified: false,
-      profilePicture: payload.picture || '',
-      role: 'user'
+      password: crypto.randomBytes(16).toString('hex')
     };
 
-    return res.status(200).json({
+    // Send response with temporary user data
+    return res.json({
       success: true,
       message: 'Temporary user created',
       tempUser
     });
 
   } catch (error) {
-    console.error('Detailed Google signup error:', error);
+    console.error('Google signup error:', error);
     return res.status(500).json({ 
       success: false, 
       message: 'Failed to process Google signup',
-      error: error.toString()
+      error: error.message 
     });
   }
 });
 
-// Update the complete-signup endpoint
+// Define the verifyOtp function if not already defined
+const verifyOtp = (phoneNumber, otp) => {
+  const storedData = otpStore.get(phoneNumber);
+
+  if (!storedData) {
+    return false;
+  }
+
+  // Check OTP expiration (5 minutes)
+  if (Date.now() - storedData.timestamp > 5 * 60 * 1000) {
+    otpStore.delete(phoneNumber);
+    return false;
+  }
+
+  // Verify OTP
+  if (storedData.otp === otp) {
+    otpStore.delete(phoneNumber); // Clear OTP after successful verification
+    console.log(`Phone number ${phoneNumber} verified successfully`);
+    return true;
+  } else {
+    // Increment failed attempts
+    storedData.attempts += 1;
+    otpStore.set(phoneNumber, storedData);
+    return false;
+  }
+};
+
+// Add the /api/auth/google/complete-signup endpoint
 app.post('/api/auth/google/complete-signup', async (req, res) => {
+  const { tempUser, phoneNumber, verificationCode } = req.body;
+
   try {
-    const { tempUser, phoneNumber, verificationCode } = req.body;
-    console.log('Received signup data:', { tempUser, phoneNumber, verificationCode });
-
-    if (!tempUser || !phoneNumber || !verificationCode) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required fields'
-      });
-    }
-
     // Verify OTP
-    const isValidOTP = verifyOtp(phoneNumber, verificationCode);
-    if (!isValidOTP) {
+    const isValid = verifyOtp(phoneNumber, verificationCode);
+
+    if (!isValid) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid or expired verification code'
+        message: 'Invalid or expired OTP.'
       });
     }
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ 
-      $or: [
-        { email: tempUser.email },
-        { phoneNumber: phoneNumber }
-      ]
-    });
-
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: 'User with this email or phone number already exists'
-      });
-    }
-
-    // Create new user
-    const newUser = new User({
+    // Create new user in DB only after OTP verification
+    const user = new User({
       email: tempUser.email,
       firstName: tempUser.firstName,
       lastName: tempUser.lastName,
-      password: tempUser.password,
       phoneNumber: phoneNumber,
-      googleId: tempUser.googleId,
-      verified: true,
-      profilePicture: tempUser.profilePicture,
-      role: 'user'
+      password: tempUser.password,
+      googleId: tempUser.googleId || null // Ensure googleId is handled
     });
 
-    await newUser.save();
-    console.log('New user created:', newUser);
+    await user.save();
+
+    // Send welcome email
+    await sendWelcomeEmail(user.email, user.firstName);
 
     // Generate JWT token
     const token = jwt.sign(
-      { userId: newUser._id, email: newUser.email },
+      { userId: user._id, email: user.email },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
 
-    res.status(201).json({
+    // Clear OTP from store
+    otpStore.delete(phoneNumber);
+
+    // Return success response
+    res.json({
       success: true,
-      message: 'User registration completed successfully',
+      message: 'Signup completed successfully',
       token,
       user: {
-        id: newUser._id,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-        email: newUser.email,
-        phoneNumber: newUser.phoneNumber
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phoneNumber: user.phoneNumber
       }
     });
 
   } catch (error) {
-    console.error('Complete signup error:', error);
+    console.error('Complete Google signup error:', error);
     res.status(500).json({
       success: false,
-      message: 'Error completing registration',
-      error: error.toString()
+      message: 'Failed to complete signup',
+      error: error.message
     });
   }
 });
@@ -1346,9 +1331,10 @@ app.post('/api/admin/register', async (req, res) => {
         // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Create new admin
+        // Create new admin with a default email based on the username
         const admin = new Admin({
             name,
+            email: `${name.toLowerCase().replace(/\s+/g, '.')}@example.com`, // Generate a default email
             password: hashedPassword
         });
 
@@ -1488,6 +1474,7 @@ const sendPasswordResetEmail = async (userEmail, tempPassword) => {
 // app.use('/api', profileRoutes);
 app.use('/api', blogPostRoutes);
 app.use('/api', logRoutes);
+app.use('/api', trialRequestRoutes);
 
 // Add logout endpoint if you don't have one
 app.post('/api/logout', auth, async (req, res) => {
@@ -1548,7 +1535,7 @@ app.get('/', (req, res) => {
 });
 
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 }); 

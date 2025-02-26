@@ -50,7 +50,7 @@ export default function CourseDetail() {
                 <div className="relative bg-gradient-to-r from-[#333333] to-[#111827] text-white py-16">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <button
-                            onClick={() => navigate('/courses')}
+                            onClick={() => navigate('/course')}
                             className="text-gray-300 hover:text-white mb-8 flex items-center"
                         >
                             ← Back to Courses
@@ -148,7 +148,7 @@ export default function CourseDetail() {
                                                 <div 
                                                     key={lessonIndex} 
                                                     className="flex items-center justify-between p-3 bg-gray-50 rounded-lg cursor-pointer"
-                                                    onClick={() => navigate(`/courses/${course._id}/modules/${module._id}/lessons/${lesson._id}`)}
+                                                    onClick={() => navigate(`/course/${course._id}/modules/${module._id}/lessons/${lesson._id}`)}
                                                 >
                                                     <div className="flex items-center">
                                                         <PlayCircle className="w-5 h-5 text-gray-400 mr-3" />

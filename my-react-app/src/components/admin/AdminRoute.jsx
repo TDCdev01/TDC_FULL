@@ -11,7 +11,7 @@ import ViewBlogPost from './BlogPost/ViewBlogPost';
 import AdminPanel from './AdminPanel';
 import { API_URL } from '../../config/config';
 
-export default function AdminRoute() {
+const AdminRoute = () => {
   const { authState, setAuthState } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -84,3 +84,4 @@ export default function AdminRoute() {
     </Routes>
   );
 } 
+export default AdminRoute;

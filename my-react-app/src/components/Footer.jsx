@@ -19,10 +19,10 @@ export default function Footer() {
               Quick Links
             </h3>
             <ul className="space-y-3 text-sm">
-              <li><Link to="/about" className="hover:text-[#ffde58] transition-colors duration-300">About Us</Link></li>
-              <li><Link to="/pricing" className="hover:text-[#ffde58] transition-colors duration-300">Pricing Detail</Link></li>
-              <li><Link to="/privacy" className="hover:text-[#ffde58] transition-colors duration-300">Privacy Policy</Link></li>
-              <li><Link to="/terms" className="hover:text-[#ffde58] transition-colors duration-300">Terms and Condition</Link></li>
+              <li><Link to="/about" className="text-gray-300 hover:text-[#ffde58] transition-colors duration-300">About Us</Link></li>
+              <li><Link to="/pricing" className="text-gray-300 hover:text-[#ffde58] transition-colors duration-300">Pricing Detail</Link></li>
+              <li><Link to="/privacy" className="text-gray-300 hover:text-[#ffde58] transition-colors duration-300">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="text-gray-300 hover:text-[#ffde58] transition-colors duration-300">Terms and Condition</Link></li>
             </ul>
           </motion.div>
 
@@ -32,11 +32,11 @@ export default function Footer() {
               Resources
             </h3>
             <ul className="space-y-3 text-sm">
-              <li><Link to="/webinars" className="hover:text-[#ffde58] transition-colors duration-300">Upcoming Webinar</Link></li>
-              <li><Link to="/past-webinars" className="hover:text-[#ffde58] transition-colors duration-300">Past Webinar</Link></li>
-              <li><Link to="/docs" className="hover:text-[#ffde58] transition-colors duration-300">Docs</Link></li>
-              <li><Link to="/blogs" className="hover:text-[#ffde58] transition-colors duration-300">Blogs</Link></li>
-              <li><Link to="/ebooks" className="hover:text-[#ffde58] transition-colors duration-300">Ebooks</Link></li>
+              <li><Link to="/webinars" className="text-gray-300 hover:text-[#ffde58] transition-colors duration-300">Upcoming Webinar</Link></li>
+              <li><Link to="/past-webinars" className="text-gray-300 hover:text-[#ffde58] transition-colors duration-300">Past Webinar</Link></li>
+              <li><Link to="/docs" className="text-gray-300 hover:text-[#ffde58] transition-colors duration-300">Docs</Link></li>
+              <li><Link to="/blogs" className="text-gray-300 hover:text-[#ffde58] transition-colors duration-300">Blogs</Link></li>
+              <li><Link to="/ebooks" className="text-gray-300 hover:text-[#ffde58] transition-colors duration-300">Ebooks</Link></li>
             </ul>
           </motion.div>
 
@@ -46,10 +46,10 @@ export default function Footer() {
               CAREER
             </h3>
             <ul className="space-y-3 text-sm">
-              <li><Link to="/jobs" className="hover:text-[#ffde58] transition-colors duration-300">Jobs</Link></li>
-              <li><Link to="/student-program" className="hover:text-[#ffde58] transition-colors duration-300">Student Program</Link></li>
-              <li><Link to="/collaborate" className="hover:text-[#ffde58] transition-colors duration-300">Collaborate</Link></li>
-              <li><Link to="/learn-and-earn" className="hover:text-[#ffde58] transition-colors duration-300">Learn and Earn</Link></li>
+              <li><Link to="/jobs" className="text-gray-300 hover:text-[#ffde58] transition-colors duration-300">Jobs</Link></li>
+              <li><Link to="/student-program" className="text-gray-300 hover:text-[#ffde58] transition-colors duration-300">Student Program</Link></li>
+              <li><Link to="/collaborate" className="text-gray-300 hover:text-[#ffde58] transition-colors duration-300">Collaborate</Link></li>
+              <li><Link to="/learn-and-earn" className="text-gray-300 hover:text-[#ffde58] transition-colors duration-300">Learn and Earn</Link></li>
             </ul>
           </motion.div>
 
@@ -59,10 +59,10 @@ export default function Footer() {
               Subjects
             </h3>
             <ul className="space-y-3 text-sm">
-              <li><Link to="/career-paths" className="hover:text-[#ffde58] transition-colors duration-300">Career Paths</Link></li>
-              <li><Link to="/interview-prep" className="hover:text-[#ffde58] transition-colors duration-300">Interview Prep</Link></li>
-              <li><Link to="/full-catalog" className="hover:text-[#ffde58] transition-colors duration-300">Full Catalog</Link></li>
-              <li><Link to="/roadmap" className="hover:text-[#ffde58] transition-colors duration-300">Roadmap</Link></li>
+              <li><Link to="/career-paths" className="text-gray-300 hover:text-[#ffde58] transition-colors duration-300">Career Paths</Link></li>
+              <li><Link to="/interview-prep" className="text-gray-300 hover:text-[#ffde58] transition-colors duration-300">Interview Prep</Link></li>
+              <li><Link to="/full-catalog" className="text-gray-300 hover:text-[#ffde58] transition-colors duration-300">Full Catalog</Link></li>
+              <li><Link to="/roadmap" className="text-gray-300 hover:text-[#ffde58] transition-colors duration-300">Roadmap</Link></li>
             </ul>
           </motion.div>
 
@@ -97,7 +97,7 @@ export default function Footer() {
                 whileHover={{ x: 3 }}
               >
                 <Mail className="text-[#ffde58] group-hover:scale-110 transition-transform duration-300" />
-                <a href="mailto:media@topdatacoach.com" className="hover:text-[#ffde58] transition-colors duration-300">
+                <a href="mailto:media@topdatacoach.com" className="text-gray-300 hover:text-[#ffde58] transition-colors duration-300">
                   media@topdatacoach.com
                 </a>
               </motion.div>
@@ -107,8 +107,8 @@ export default function Footer() {
               >
                 <Phone className="text-[#ffde58] group-hover:scale-110 transition-transform duration-300" />
                 <div>
-                  <p className="hover:text-[#ffde58] transition-colors duration-300">+91 9500125930</p>
-                  <p className="hover:text-[#ffde58] transition-colors duration-300">+91 9500120298</p>
+                  <p className="text-gray-300 hover:text-[#ffde58] transition-colors duration-300">+91 9500125930</p>
+                  <p className="text-gray-300 hover:text-[#ffde58] transition-colors duration-300">+91 9500120298</p>
                 </div>
               </motion.div>
             </div>

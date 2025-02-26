@@ -8,27 +8,33 @@ const lessonSchema = new mongoose.Schema({
     description: String,
     duration: String,
     videoUrl: String,
-    content: {
-        text: String,
-        code: String,
-        codeLanguage: {
-            type: String,
-            default: 'javascript'
-        }
-    },
-    images: [{
-        url: String,
-        caption: String
-    }],
-    downloadableFiles: [{
-        url: String,
-        name: String,
-        size: String
-    }],
     isLocked: {
         type: Boolean,
-        default: true
-    }
+        default: false
+    },
+    sections: [{
+        type: {
+            type: String,
+            enum: ['text', 'code', 'image', 'file'],
+            required: true
+        },
+        content: {
+            // For text sections
+            text: String,
+            
+            // For code sections
+            code: String,
+            language: String,
+            
+            // For image sections
+            url: String,
+            caption: String,
+            
+            // For file sections
+            name: String,
+            size: String
+        }
+    }]
 });
 
 const moduleSchema = new mongoose.Schema({

@@ -42,7 +42,6 @@ export default function BlogList() {
       const response = await fetch(`${API_URL}/api/blog-posts`);
       const data = await response.json();
       if (data.success) {
-          console.log('Fetched blogs:', data.posts); // Debug log
         setBlogs(data.posts);
       }
     } catch (error) {

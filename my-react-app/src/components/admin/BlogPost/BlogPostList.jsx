@@ -32,15 +32,14 @@ export default function BlogPostList() {
       }
 
       const data = await response.json();
-      console.log('[BlogPostList] Fetched posts:', data.posts.map(post => ({
-        id: post._id,
-        title: post.title,
-        author: post.author,
-        authorName: post.authorNameFE
-      })));
       
       if (data.success) {
-        setPosts(data.posts);
+        // Format posts to ensure views property exists
+        const formattedPosts = data.posts.map(post => ({
+          ...post,
+          views: post.views || 0 // Ensure views has a default value
+        }));
+        setPosts(formattedPosts);
       } else {
         throw new Error(data.message || 'Failed to fetch posts');
       }
@@ -141,7 +140,7 @@ export default function BlogPostList() {
                       {post.authorNameFE || 'Unknown Author'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-300">
-                      {post.viewCount || 0}
+                      {post.views}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-gray-300">
                       {new Date(post.createdAt).toLocaleDateString()}

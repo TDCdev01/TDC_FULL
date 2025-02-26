@@ -55,11 +55,16 @@ export default function Navbar() {
 
   const navItems = [
     {
-      title: 'Home',
-      href: '/',
+      title: 'Course',
+      href: '/course',
     },
     {
-      title: 'Junior Role',
+      title: 'Blogs',
+      href: '/blog',
+    
+    },
+    {
+      title: 'Pricing',
       href: '/junior',
       items: [
         { name: 'PBI Report Developer', href: '/live-classes/upcoming' },
@@ -67,26 +72,6 @@ export default function Navbar() {
         { name: 'DataBase Developer MySQL', href: '/live-classes/upcoming' },
         { name: 'MongoDB Developer', href: '/live-classes/upcoming' },
         { name: 'Azure Data Analyst', href: '/live-classes/recorded' },
-      ],
-    },
-    {
-      title: 'Senior Role',
-      items: [
-        { name: 'Data Analyst(PBI + SQL)', href: '/practice/coding' },
-        { name: 'Data Scientist(Python + ML)', href: '/practice/projects' },
-        { name: 'Database Admin(MySQL)', href: '/practice/projects' },
-        { name: 'Big Data Analyst(Spark + Hadoop)', href: '/practice/projects' },
-        { name: 'Azure Data Admin(Azure)', href: '/practice/projects' },
-      ],
-    },
-    {
-      title: 'Arch Role',
-      items: [
-        { name: 'Fabric Architect PBI', href: '/resources/blog' },
-        { name: 'ML Architect', href: '/resources/blog' },
-        { name: 'Database Architect', href: '/resources/blog' },
-        { name: 'Cloud Architect', href: '/resources/blog' },
-        { name: 'Azure Architect', href: '/resources/blog' }, 
       ],
     },
     {
@@ -138,6 +123,7 @@ export default function Navbar() {
           lg:bg-transparent lg:p-0
           ${isMobileMenuOpen ? 'border-t border-gray-600' : ''}
         `}>
+          <NavItem title="Home" href="/" />
           {navItems.map((item, index) => (
             <div key={index} className="w-full lg:w-auto">
               <NavItem {...item} />

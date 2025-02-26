@@ -13,6 +13,7 @@ import CreateCourse from './components/admin/CourseManagement/CreateCourse';
 import CourseList from './components/admin/CourseManagement/CourseList';
 import AdminCourseView from './components/admin/CourseManagement/AdminCourseView';
 import EditCourse from './components/admin/CourseManagement/EditCourse';
+import TDCLabs from './Pages/TDCLabs';
 
 function App() {
     return (
@@ -30,14 +31,15 @@ function App() {
                     <Route path="/blog/:id" element={<BlogDetail />} />
                     
                     {/* Course Routes */}
-                    <Route path="/courses" element={<Courses />} />
-                    <Route path="/courses/:id" element={<CourseDetail />} />
-                    <Route path="/courses/:courseId/modules/:moduleId/lessons/:lessonId" element={<LessonView />} />
+                    <Route path="/course" element={<Courses />} />
+                    <Route path="/course/:id" element={<CourseDetail />} />
+                    <Route path="/course/:courseId/modules/:moduleId/lessons/:lessonId" element={<LessonView />} />
                     <Route path="/help" element={<Help />} />
-                    <Route path="/admin/courses/create" element={<CreateCourse />} />
-                    <Route path="/admin/courses" element={<CourseList />} />
-                    <Route path="/admin/courses/view/:id" element={<AdminCourseView />} />
-                    <Route path="/admin/courses/edit/:id" element={<EditCourse />} />
+                    <Route path="/admin/course/create" element={<CreateCourse />} />
+                    <Route path="/admin/course" element={<CourseList />} />
+                    <Route path="/admin/course/view/:id" element={<AdminCourseView />} />
+                    <Route path="/admin/course/edit/:id" element={<EditCourse />} />
+                    <Route path="/lab" element={<TDCLabs />} />
                     <Route path="/*" element={<AppContent />} />
                 </Routes>
             </BrowserRouter>

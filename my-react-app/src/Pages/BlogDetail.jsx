@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Calendar, User, ArrowLeft } from 'lucide-react';
 import ReactQuill from 'react-quill';
@@ -6,32 +6,53 @@ import 'react-quill/dist/quill.bubble.css';
 import Navbar from '../components/Navbar';
 import { API_URL } from '../config/config';
 
-export default function BlogDetail() {
-  const [blog, setBlog] = useState(null);
-  const [loading, setLoading] = useState(true);
+const BlogDetail = () => {
   const { id } = useParams();
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
-  const fetchBlogDetail = async () => {
-    try {
-      console.log('[Frontend] Fetching blog detail for ID:', id);
-      const response = await fetch(`${API_URL}/api/blog-posts/${id}`);
-      const data = await response.json();
-      
-      if (data.success) {
-        setBlog(data.post);
-      }
-    } catch (error) {
-      console.error('Error fetching blog:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const viewIncrementedRef = useRef(false);
 
   useEffect(() => {
-    if (id) {
-      fetchBlogDetail();
-    }
+    const loadPost = async () => {
+      if (!id) return;
+
+      try {
+        const response = await fetch(`${API_URL}/api/blog-posts/${id}`);
+        const data = await response.json();
+
+        if (data.success) {
+          setPost(data.post);
+
+          const viewKey = `blog_${id}_viewed_at`;
+          const lastViewedAt = sessionStorage.getItem(viewKey);
+          const now = new Date().toISOString();
+
+          const incrementResponse = await fetch(`${API_URL}/api/blog-posts/${id}/increment-view`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ lastViewedAt })
+          });
+
+          const incrementData = await incrementResponse.json();
+          if (incrementData.success) {
+            sessionStorage.setItem(viewKey, now);
+            setPost(prev => ({
+              ...prev,
+              views: incrementData.newCount
+            }));
+          }
+        }
+      } catch (error) {
+        console.error('Error loading blog post:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPost();
   }, [id]);
 
   const formatDate = (dateString) => {
@@ -116,7 +137,7 @@ export default function BlogDetail() {
     );
   }
 
-  if (!blog) {
+  if (!post) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-gray-600">Blog post not found.</p>
@@ -140,18 +161,22 @@ export default function BlogDetail() {
             </button>
 
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              {blog.title}
+              {post.title}
             </h1>
 
             <div className="flex items-center space-x-6 text-gray-200">
               <div className="flex items-center">
                 <Calendar className="w-5 h-5 mr-2" />
-                {formatDate(blog.createdAt)}
+                {formatDate(post.createdAt)}
               </div>
               <div className="flex items-center">
                 <User className="w-5 h-5 mr-2" />
-                {blog.authorNameFE || 'Unknown Author'}
+                {post.authorNameFE || 'Unknown Author'}
               </div>
+            </div>
+
+            <div className="text-sm text-gray-500 mt-4">
+              Views: {post.views || 0}
             </div>
           </div>
         </div>
@@ -161,7 +186,7 @@ export default function BlogDetail() {
           <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12">
             <div className="space-y-12 prose prose-lg max-w-none">
               <div className="prose-headings:text-[#111827] prose-p:text-[#333333]">
-                {blog.sections.map((section, index) => (
+                {post.sections.map((section, index) => (
                   <div key={index} className="blog-section">
                     {renderSection(section)}
                   </div>
@@ -184,4 +209,6 @@ export default function BlogDetail() {
       </div>
     </>
   );
-} 
+};
+
+export default BlogDetail; 

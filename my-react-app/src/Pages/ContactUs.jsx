@@ -4,7 +4,7 @@ import Footer from '../components/Footer';
 import { API_URL } from '../config/config';
 
 export default function ContactUs() {
-  const whatsappNumber = "9500120298";
+  const whatsappNumber = "";
   
   const handleWhatsAppClick = () => {
     window.open(`https://wa.me/${whatsappNumber}`, '_blank');
@@ -280,25 +280,7 @@ export default function ContactUs() {
 
       {/* Contact Information with Enhanced Layout */}
       <div className="container mx-auto px-4 py-16">
-        <div className="grid md:grid-cols-2 gap-12">
-          {/* Map Section */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.5 }}
-            className="rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-shadow duration-300"
-          >
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3887.3325752387747!2d80.24107597515626!3d13.010590787308604!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a526787e5aec557%3A0x3c1cd354b839e1ea!2sIITM%20Research%20Park!5e0!3m2!1sen!2sin!4v1709825431037!5m2!1sen!2sin"
-              width="100%"
-              height="450"
-              style={{ border: 0 }}
-              allowFullScreen=""
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-              className="rounded-xl"
-            ></iframe>
-          </motion.div>
+        <div className="grid md:grid-cols-1 gap-12">
 
           {/* Contact Details with Enhanced Design */}
           <motion.div

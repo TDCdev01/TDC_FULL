@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const Course = require('../models/Course');
+const upload = require('../middleware/upload');
+const path = require('path');
 
 // Create a new course
 router.post('/courses', auth, async (req, res) => {
@@ -133,6 +135,40 @@ router.put('/courses/:id', auth, async (req, res) => {
             error: error.message
         });
     }
+});
+
+// Add this new route for file uploads
+router.post('/courses/upload-file', auth, upload.single('file'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: 'No file uploaded'
+            });
+        }
+
+        const fileUrl = `/assets/${req.file.filename}`;
+        res.json({
+            success: true,
+            file: {
+                url: fileUrl,
+                name: req.file.originalname,
+                size: req.file.size
+            }
+        });
+    } catch (error) {
+        console.error('File upload error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error uploading file'
+        });
+    }
+});
+
+// Add this to serve files
+router.get('/assets/:filename', (req, res) => {
+    const filePath = path.join(__dirname, '../assets', req.params.filename);
+    res.sendFile(filePath);
 });
 
 module.exports = router; 

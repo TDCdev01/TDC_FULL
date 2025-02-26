@@ -36,14 +36,14 @@ export default function AdminDashboard() {
             title: 'Create Course',
             icon: <FolderPlus className="w-8 h-8" />,
             description: 'Create new courses and lessons',
-            onClick: () => navigate('/admin/courses/create'),
+            onClick: () => navigate('/admin/course/create'),
             bgColor: 'bg-green-500'
         },
         {
             title: 'Manage Courses',
             icon: <BookOpen className="w-8 h-8" />,
             description: 'View and edit existing courses',
-            onClick: () => navigate('/admin/courses'),
+            onClick: () => navigate('/admin/course'),
             bgColor: 'bg-yellow-500'
         },
         {

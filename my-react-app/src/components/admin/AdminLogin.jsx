@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { LogIn, Eye, EyeOff } from 'lucide-react';
 import { API_URL } from '../../config/config';
 
-const AdminLogin = () => {
+export default function AdminLogin() {
   const [formData, setFormData] = useState({
     name: '',
     password: '',
@@ -130,5 +130,3 @@ const AdminLogin = () => {
     </div>
   );
 };
-
-export default AdminLogin; 

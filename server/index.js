@@ -23,6 +23,8 @@ const BlogPost = require('./models/BlogPost');
 const courseRoutes = require('./routes/courseRoutes');
 const trialRequestRoutes = require('./routes/trialRequests');
 const uploadRoutes = require('./routes/uploadRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
+const enrollmentRoutes = require('./routes/enrollmentRoutes');
 
 const app = express();
 app.use(cors({
@@ -32,18 +34,23 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from the assets directory
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
-// Mount the blog posts routes
-app.use('/api', blogPostRoutes);
+// Use the upload routes early on
+app.use('/api/uploads', uploadRoutes);
 
-// Add this with your other app.use statements
+// Then mount the other routes
+app.use('/api', blogPostRoutes);
 app.use('/api', courseRoutes);
 
-// Use the upload routes
-app.use('/api/uploads', uploadRoutes);
+// Register the payment routes
+app.use('/api/payments', paymentRoutes);
+
+// Add this with your other route registrations
+app.use('/api/enrollments', enrollmentRoutes);
 
 // MongoDB connection
 mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://anshuman:Anshuman123@cluster0.nqygv2g.mongodb.net/TDC?retryWrites=true&w=majority', {
@@ -1221,45 +1228,45 @@ app.get('/api/admin/users/:userId', authenticateToken, isAdmin, async (req, res)
 app.put('/api/admin/users/:id', authenticateToken, isAdmin, async (req, res) => {
   try {
     const updatedUser = await User.findByIdAndUpdate(
-      req.params.id,
-      {
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        email: req.body.email,
-        phoneNumber: req.body.phoneNumber,
-        isAdmin: req.body.isAdmin,
-        status: req.body.status
-      },
-      { new: true }
-    );
-    
-    if (!updatedUser) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'User not found' 
-      });
-    }
-
-    res.json({ 
-      success: true, 
-      message: 'User updated successfully',
-      user: {
-        _id: updatedUser._id,
-        firstName: updatedUser.firstName,
-        lastName: updatedUser.lastName,
-        email: updatedUser.email,
-        phoneNumber: updatedUser.phoneNumber,
-        isAdmin: updatedUser.isAdmin,
-        status: updatedUser.status
-      }
-    });
-  } catch (error) {
-    console.error('Update user error:', error);
-    res.status(400).json({ 
+    req.params.id,
+    {
+      firstName: req.body.firstName,
+      lastName: req.body.lastName,
+      email: req.body.email,
+      phoneNumber: req.body.phoneNumber,
+      isAdmin: req.body.isAdmin,
+      status: req.body.status
+    },
+    { new: true }
+  );
+  
+  if (!updatedUser) {
+    return res.status(404).json({ 
       success: false, 
-      message: error.message || 'Error updating user' 
+      message: 'User not found' 
     });
   }
+
+  res.json({ 
+    success: true, 
+    message: 'User updated successfully',
+    user: {
+      _id: updatedUser._id,
+      firstName: updatedUser.firstName,
+      lastName: updatedUser.lastName,
+      email: updatedUser.email,
+      phoneNumber: updatedUser.phoneNumber,
+      isAdmin: updatedUser.isAdmin,
+      status: updatedUser.status
+    }
+  });
+} catch (error) {
+  console.error('Update user error:', error);
+  res.status(400).json({ 
+    success: false, 
+    message: error.message || 'Error updating user' 
+  });
+}
 });
 
 // Delete user (Admin Protected)
@@ -1472,7 +1479,6 @@ const sendPasswordResetEmail = async (userEmail, tempPassword) => {
 // app.use('/api', authRoutes);
 // app.use('/api', userRoutes);
 // app.use('/api', profileRoutes);
-app.use('/api', blogPostRoutes);
 app.use('/api', logRoutes);
 app.use('/api', trialRequestRoutes);
 
@@ -1489,7 +1495,13 @@ app.post('/api/logout', auth, async (req, res) => {
   }
 });
 
-// Add a catch-all route handler for debugging
+// Add a debugging middleware right before your catch-all
+app.use((req, res, next) => {
+  console.log('About to return 404 for:', req.method, req.originalUrl);
+  next();
+});
+
+// Keep your catch-all middleware at the very end
 app.use((req, res) => {
     console.log(`Route not found: ${req.method} ${req.url}`);
     res.status(404).json({
@@ -1534,6 +1546,21 @@ app.get('/', (req, res) => {
   res.json({ message: 'Welcome to the API!' });
 });
 
+// Add this route handler at the top of your routes section
+// to handle the verify-token route specifically
+app.get('/api/verify-token', (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ valid: false });
+    }
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'abcd');
+    res.json({ valid: true, user: decoded });
+  } catch (error) {
+    res.status(401).json({ valid: false });
+  }
+});
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

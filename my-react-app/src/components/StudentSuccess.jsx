@@ -6,26 +6,26 @@ import { Star, Award, Briefcase } from 'lucide-react';
 export default function StudentSuccess() {
   const successStories = [
     {
-      name: "Priya Sharma",
-      role: "Full Stack Developer",
+      name: "Vikram singh",
+      role: "Data Engineer",
       company: "Microsoft",
-      image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400",
+      image: "https://res.cloudinary.com/dl4zkgesn/image/upload/v1741770120/hjjxjzntawgedqnjv8zi.jpg",
       story: "From a non-tech background to landing my dream job at Microsoft in just 8 months!",
       rating: 5
     },
     {
-      name: "Rahul Kumar",
+      name: "Sofia Williams",
       role: "Data Scientist",
       company: "Amazon",
-      image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
+      image: "https://res.cloudinary.com/dl4zkgesn/image/upload/v1741770226/sofia_williams_hiwpta.jpg",
       story: "TDC's AI course helped me transition from analytics to data science seamlessly.",
       rating: 5
     },
     {
-      name: "Neha Patel",
+      name: "Sneha Nair",
       role: "Cloud Engineer",
       company: "Google",
-      image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400",
+      image: "https://res.cloudinary.com/dl4zkgesn/image/upload/v1741770278/sneha_nair_mkgsd7.jpg",
       story: "The hands-on projects and mentorship were game-changers in my career.",
       rating: 5
     }

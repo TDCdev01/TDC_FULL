@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, CheckCircle, Download, BookOpen, Image as ImageIcon, X, FileText, Lock, ArrowRight, Eye } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { API_URL } from '../config/config';
@@ -20,6 +20,7 @@ export default function LessonView() {
   const [showPDF, setShowPDF] = useState(false);
   const [currentPDF, setCurrentPDF] = useState(null);
   const [nextLesson, setNextLesson] = useState(null);
+  const [isPurchased, setIsPurchased] = useState(false);
 
   useEffect(() => {
     const fetchLessonData = async () => {
@@ -76,6 +77,30 @@ export default function LessonView() {
 
     fetchLessonData();
   }, [courseId, moduleId, lessonId]);
+
+  useEffect(() => {
+    const checkPurchaseStatus = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        
+        const response = await fetch(`${API_URL}/api/courses/check-access/${courseId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        const data = await response.json();
+        if (data.success && data.isPurchased) {
+          setIsPurchased(true);
+        }
+      } catch (error) {
+        console.error('Error checking purchase status:', error);
+      }
+    };
+    
+    checkPurchaseStatus();
+  }, [courseId]);
 
   if (loading || !currentLesson) {
     return (
@@ -161,9 +186,56 @@ export default function LessonView() {
     setShowPDF(true);
   };
 
-  // Function to handle lesson navigation
-  const handleLessonClick = (moduleId, lessonId) => {
-    navigate(`/course/${courseId}/modules/${moduleId}/lessons/${lessonId}`);
+  // Add this function to check enrollment before navigation
+  const handleLessonClick = async (moduleId, lessonId, isLocked) => {
+    // First check if the user is logged in
+    const token = localStorage.getItem('token');
+    
+    // If lesson is locked and no token, redirect to login
+    if (isLocked && !token) {
+      navigate('/login');
+      return;
+    }
+    
+    // If lesson isn't locked, allow navigation regardless
+    if (!isLocked) {
+      navigate(`/course/${courseId}/modules/${moduleId}/lessons/${lessonId}`);
+      return;
+    }
+    
+    // For locked lessons, check enrollment status before navigating
+    try {
+      const response = await fetch(`${API_URL}/api/enrollments/${courseId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.status === 404) {
+        // No enrollment found - redirect to course page with purchase option
+        console.log('Attempted to access locked content without enrollment');
+        navigate(`/course/${courseId}`);
+        return;
+      }
+      
+      if (!response.ok) {
+        throw new Error(`Failed to verify enrollment: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // Allow navigation only if the user has completed enrollment
+      if (data.success && data.enrollment.status === 'completed') {
+        navigate(`/course/${courseId}/modules/${moduleId}/lessons/${lessonId}`);
+      } else {
+        // Redirect to course page if not properly enrolled
+        navigate(`/course/${courseId}`);
+      }
+    } catch (error) {
+      console.error('Error checking enrollment:', error);
+      // On error, be safe and redirect to course page
+      navigate(`/course/${courseId}`);
+    }
   };
 
   // Add this function to check if a file exists before displaying
@@ -363,7 +435,7 @@ export default function LessonView() {
                             {module.lessons.map((lesson) => (
                               <button
                                 key={lesson._id}
-                                onClick={() => handleLessonClick(module._id, lesson._id)}
+                                onClick={() => handleLessonClick(module._id, lesson._id, lesson.isLocked)}
                                 className={`w-full flex items-center text-left p-2 rounded-lg transition-colors ${
                                   lesson._id === lessonId 
                                     ? 'bg-blue-50 text-blue-600' 
@@ -385,7 +457,7 @@ export default function LessonView() {
                                     </span>
                                   )}
                                 </div>
-                                {lesson.isLocked && (
+                                {lesson.isLocked && !isPurchased && (
                                   <span className="ml-2 text-gray-400">
                                     <Lock className="w-4 h-4" />
                                   </span>
@@ -405,7 +477,7 @@ export default function LessonView() {
                     <div className="p-6">
                       <h3 className="text-lg font-semibold text-gray-900 mb-4">Next Up</h3>
                       <button
-                        onClick={() => handleLessonClick(nextLesson.moduleId, nextLesson.lesson._id)}
+                        onClick={() => handleLessonClick(nextLesson.moduleId, nextLesson.lesson._id, nextLesson.lesson.isLocked)}
                         className="w-full text-left"
                       >
                         <div className="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition-colors">

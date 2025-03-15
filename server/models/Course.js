@@ -111,6 +111,11 @@ const courseSchema = new mongoose.Schema({
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Admin'
+    },
+    price: {
+        type: Number,
+        default: 0,
+        min: 0
     }
 }, {
     timestamps: true

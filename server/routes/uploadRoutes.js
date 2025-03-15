@@ -125,4 +125,9 @@ router.post('/files', simpleValidateAdmin, (req, res, next) => {
     }
 });
 
+// Test route
+router.get('/test', (req, res) => {
+    res.json({ success: true, message: 'Upload route is working' });
+});
+
 module.exports = router; 

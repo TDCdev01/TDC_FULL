@@ -27,9 +27,9 @@ export default function Courses() {
 
   const levels = [
     { id: 'all', name: 'All Levels' },
-    { id: 'beginner', name: 'Beginner' },
-    { id: 'intermediate', name: 'Intermediate' },
-    { id: 'advanced', name: 'Advanced' }
+    { id: 'beginner', name: 'Self learning  ' },
+    { id: 'intermediate', name: 'Mentored Course' },
+    { id: 'advanced', name: 'Live courses' }
   ];
 
   useEffect(() => {
@@ -236,6 +236,24 @@ export default function Courses() {
                         {resource.count} {resource.type}s
                       </div>
                     ))}
+                  </div>
+
+                  {/* Price and Buy Now Button */}
+                  <div className="flex items-center justify-between mt-4 mb-3">
+                    <div className="font-bold text-lg text-[#111827]">
+                      {course.price > 0 ? `₹${course.price}` : 'Free'}
+                    </div>
+                    {course.price > 0 && (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent navigating to course detail
+                          navigate(`/checkout/${course._id}`);
+                        }}
+                        className="bg-[#ffd025] text-[#222222] px-4 py-2 rounded-lg font-medium hover:bg-[#ffd025]/90 transition-all"
+                      >
+                        Buy Now
+                      </button>
+                    )}
                   </div>
 
                   {/* Progress Bar */}

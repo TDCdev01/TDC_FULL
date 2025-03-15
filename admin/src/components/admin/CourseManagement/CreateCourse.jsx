@@ -16,6 +16,7 @@ export default function CreateCourse() {
         students: 0,
         reviews: 0,
         rating: 4.9,
+        price: 0,
         instructor: {
             name: '',
             title: '',
@@ -28,7 +29,7 @@ export default function CreateCourse() {
             { type: 'download', count: 10 }
         ],
         modules: [],
-        level: 'Intermediate',
+        level: 'Self learning',
         category: 'Web Development',
         image: '', // URL to course thumbnail
         prerequisites: {
@@ -475,23 +476,46 @@ export default function CreateCourse() {
                     <div className="bg-[#1e293b] p-6 rounded-xl">
                         <h2 className="text-xl font-semibold mb-6">Basic Information</h2>
                         <div className="space-y-6">
-                            <div>
-                                <label className="block text-sm font-medium mb-2">Course Title</label>
-                                <input
-                                    type="text"
-                                    value={course.title}
-                                    onChange={(e) => setCourse({ ...course, title: e.target.value })}
-                                    className="w-full bg-[#334155] text-white px-4 py-2 rounded-lg"
-                                    placeholder="e.g., Advanced JavaScript & React Development"
-                                />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <label htmlFor="title" className="block text-gray-300 mb-2">Course Title</label>
+                                    <input
+                                        type="text"
+                                        id="title"
+                                        value={course.title}
+                                        onChange={(e) => setCourse({ ...course, title: e.target.value })}
+                                        className="w-full bg-gray-700 text-white rounded-lg p-3"
+                                        placeholder="Enter course title"
+                                        required
+                                    />
+                                </div>
+                                
+                                {/* Add Price Field */}
+                                <div>
+                                    <label htmlFor="price" className="block text-gray-300 mb-2">
+                                        Course Price (₹) <span className="text-gray-400 text-sm">(0 for free courses)</span>
+                                    </label>
+                                    <input
+                                        type="number"
+                                        id="price"
+                                        min="0"
+                                        step="100"
+                                        value={course.price}
+                                        onChange={(e) => setCourse({ ...course, price: Number(e.target.value) })}
+                                        className="w-full bg-gray-700 text-white rounded-lg p-3"
+                                        placeholder="Enter course price (0 for free)"
+                                    />
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-2">Description</label>
+                            <div className="mb-6">
+                                <label htmlFor="description" className="block text-gray-300 mb-2">Course Description</label>
                                 <textarea
+                                    id="description"
                                     value={course.description}
                                     onChange={(e) => setCourse({ ...course, description: e.target.value })}
-                                    className="w-full bg-[#334155] text-white px-4 py-2 rounded-lg h-32"
-                                    placeholder="Course description..."
+                                    className="w-full bg-gray-700 text-white rounded-lg p-3 h-32"
+                                    placeholder="Enter course description"
+                                    required
                                 />
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -523,9 +547,9 @@ export default function CreateCourse() {
                                         onChange={(e) => setCourse({ ...course, level: e.target.value })}
                                         className="w-full bg-[#334155] text-white px-4 py-2 rounded-lg"
                                     >
-                                        <option value="Beginner">Beginner</option>
-                                        <option value="Intermediate">Intermediate</option>
-                                        <option value="Advanced">Advanced</option>
+                                        <option value="Beginner">Self learning</option>
+                                        <option value="Intermediate">Mentored Course</option>
+                                        <option value="Advanced">Live courses</option>
                                     </select>
                                 </div>
                                 <div>
@@ -621,7 +645,7 @@ export default function CreateCourse() {
                                     </div>
                                 )}
                                 
-                                <input
+                        <input
                                     id="courseImageInput"
                                     type="file"
                                     accept="image/*"
@@ -908,6 +932,22 @@ export default function CreateCourse() {
                                         placeholder="Enter video URL"
                                     />
                                 </div>
+                            </div>
+
+                            {/* Add Lesson Lock Checkbox */}
+                            <div className="mt-4">
+                                <label className="flex items-center space-x-3 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={newLesson.isLocked}
+                                        onChange={(e) => setNewLesson(prev => ({ ...prev, isLocked: e.target.checked }))}
+                                        className="form-checkbox h-5 w-5 text-blue-600 rounded focus:ring-blue-500 bg-gray-700 border-gray-600"
+                                    />
+                                    <span className="text-gray-300">Lock this lesson (Premium content)</span>
+                                </label>
+                                <p className="text-gray-400 text-sm mt-1 ml-8">
+                                    Locked lessons are only available to paid subscribers
+                                </p>
                             </div>
                         </div>
 

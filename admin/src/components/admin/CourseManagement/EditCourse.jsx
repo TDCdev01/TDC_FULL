@@ -599,21 +599,39 @@ export default function EditCourse() {
                                 <div className="bg-[#1e293b] p-6 rounded-xl">
                                     <h2 className="text-xl font-semibold mb-6">Basic Information</h2>
                                     <div className="space-y-6">
-                                        <div>
-                                            <label className="block text-sm font-medium mb-2">Course Title</label>
-                                            <input
-                                                type="text"
-                                                value={course.title}
-                                                onChange={(e) => setCourse({ ...course, title: e.target.value })}
-                                                className="w-full bg-[#334155] text-white px-4 py-2 rounded-lg"
-                                            />
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                            <div>
+                                                <label className="block text-gray-300 mb-2">Course Title</label>
+                                                <input
+                                                    type="text"
+                                                    value={course.title}
+                                                    onChange={(e) => setCourse({ ...course, title: e.target.value })}
+                                                    className="w-full bg-gray-700 text-white rounded-lg p-3"
+                                                />
+                                            </div>
+                                            
+                                            {/* Add Price Field */}
+                                            <div>
+                                                <label className="block text-gray-300 mb-2">
+                                                    Course Price (₹) <span className="text-gray-400 text-sm">(0 for free courses)</span>
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    step="100"
+                                                    value={course.price}
+                                                    onChange={(e) => setCourse({ ...course, price: Number(e.target.value) })}
+                                                    className="w-full bg-gray-700 text-white rounded-lg p-3"
+                                                    placeholder="Enter course price (0 for free)"
+                                                />
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-medium mb-2">Description</label>
+                                        <div className="mb-6">
+                                            <label className="block text-gray-300 mb-2">Description</label>
                                             <textarea
                                                 value={course.description}
                                                 onChange={(e) => setCourse({ ...course, description: e.target.value })}
-                                                className="w-full bg-[#334155] text-white px-4 py-2 rounded-lg h-32"
+                                                className="w-full bg-gray-700 text-white rounded-lg p-3 h-32"
                                             />
                                         </div>
                                         <div className="grid grid-cols-2 gap-6">
@@ -803,6 +821,22 @@ export default function EditCourse() {
                             className="w-full bg-gray-700 text-white rounded-lg p-3 h-32"
                             placeholder="Enter lesson description"
                         />
+                    </div>
+
+                    {/* Add Lesson Lock Checkbox */}
+                    <div className="mb-6">
+                        <label className="flex items-center space-x-3 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={newLesson.isLocked}
+                                onChange={(e) => setNewLesson(prev => ({ ...prev, isLocked: e.target.checked }))}
+                                className="form-checkbox h-5 w-5 text-blue-600 rounded focus:ring-blue-500 bg-gray-700 border-gray-600"
+                            />
+                            <span className="text-gray-300">Lock this lesson (Premium content)</span>
+                        </label>
+                        <p className="text-gray-400 text-sm mt-1 ml-8">
+                            Locked lessons are only available to paid subscribers
+                        </p>
                     </div>
 
                     {/* Content Sections */}

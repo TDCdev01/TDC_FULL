@@ -1,11 +1,20 @@
-const fs = require('fs');
-const { API_URL } = require('../src/config/config');
+import fs from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import { API_URL } from '../src/config/config.js';
+
+// Get current file's directory
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 async function generateSitemap() {
   try {
     // Fetch your dynamic routes (courses, blog posts, etc.)
-    const courses = await fetch(`${API_URL}/api/courses`).then(r => r.json());
-    const blogs = await fetch(`${API_URL}/api/blog-posts`).then(r => r.json());
+    const coursesResponse = await fetch(`${API_URL}/api/courses`);
+    const courses = await coursesResponse.json();
+    
+    const blogsResponse = await fetch(`${API_URL}/api/blog-posts`);
+    const blogs = await blogsResponse.json();
 
     const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -22,24 +31,24 @@ async function generateSitemap() {
   </url>
   
   <!-- Dynamic Course Routes -->
-  ${courses.map(course => `
+  ${courses.courses?.map(course => `
   <url>
     <loc>https://yourdomain.com/course/${course._id}</loc>
-    <lastmod>${new Date(course.updatedAt).toISOString()}</lastmod>
+    <lastmod>${new Date(course.updatedAt || Date.now()).toISOString()}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
-  `).join('')}
+  `).join('') || ''}
   
   <!-- Dynamic Blog Routes -->
-  ${blogs.map(blog => `
+  ${blogs.posts?.map(blog => `
   <url>
     <loc>https://yourdomain.com/blog/${blog._id}</loc>
-    <lastmod>${new Date(blog.updatedAt).toISOString()}</lastmod>
+    <lastmod>${new Date(blog.updatedAt || Date.now()).toISOString()}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
-  `).join('')}
+  `).join('') || ''}
 </urlset>`;
 
     fs.writeFileSync('./public/sitemap.xml', sitemap);
